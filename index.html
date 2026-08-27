@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<title>PaceCoach</title>
+<style>
+:root{--bg:#f4f7fb;--card:#fff;--text:#182230;--muted:#6b7785;--line:#dbe3ec;--blue:#2563eb;--purple:#7c3aed;--green:#16a34a;--red:#dc2626;--shadow:0 6px 20px rgba(15,23,42,.08)}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+button,input,select{font:inherit}button{touch-action:manipulation}.app{max-width:1400px;margin:auto;padding:10px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+h1{margin:0;font-size:30px}.muted{color:var(--muted);font-size:12px}.actions{display:flex;gap:7px;flex-wrap:wrap}
+.btn{border:0;border-radius:11px;padding:10px 14px;font-weight:800;background:#e8eef7;cursor:pointer}.btn.primary{background:var(--blue);color:#fff}.btn.green{background:var(--green);color:#fff}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:9px}.tabbtn{border:0;border-radius:12px;padding:11px 8px;font-weight:900;background:#e8eef7;cursor:pointer}.tabbtn.active{background:var(--blue);color:#fff}
+.tab{display:none}.tab.active{display:block}.panel{background:var(--card);border-radius:16px;padding:13px;box-shadow:var(--shadow);margin-bottom:10px}
+.grid{display:grid;grid-template-columns:repeat(5,minmax(120px,1fr));gap:8px}label{display:block;font-size:11px;font-weight:800;color:var(--muted);margin-bottom:4px}
+input,select{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.add{display:flex;gap:7px;margin-top:10px}.add input{flex:1}.importrow{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px;align-items:center}.filebtn{position:relative;overflow:hidden}.filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer}.statusmsg{font-size:11px;color:var(--muted)}.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.chip{background:#edf2f7;border-radius:999px;padding:6px 9px;font-size:12px}.chip button{border:0;background:none;font-weight:900;cursor:pointer}
+.assign{display:grid;grid-template-columns:repeat(var(--lanes),minmax(150px,1fr));gap:7px}.assigncard{border:1px solid var(--line);border-radius:12px;padding:8px;background:#fafbfd}.assigncard strong{display:block;margin-bottom:6px}
+.live{height:calc(100vh - 125px);min-height:560px;display:grid;grid-template-rows:auto 1fr;gap:7px}
+.wavebar{display:grid;grid-template-columns:repeat(var(--waves),minmax(150px,1fr));gap:7px}.wavebox{background:#fff;border:1px solid var(--line);border-radius:13px;padding:8px;box-shadow:var(--shadow)}
+.wavebox .row{display:flex;justify-content:space-between;gap:6px;align-items:center}.clock{font-weight:900;font-size:20px;font-variant-numeric:tabular-nums;margin:3px 0}.start{width:100%;border:0;border-radius:9px;min-height:38px;color:#fff;font-weight:900;cursor:pointer}.stopwave{width:100%;border:0;border-radius:9px;min-height:32px;margin-top:4px;background:#dc2626;color:#fff;font-size:11px;font-weight:900;cursor:pointer}
+.c1{background:#2563eb}.c2{background:#7c3aed}.c3{background:#0f766e}.c4{background:#b45309}
+.timinggrid{min-height:0;display:grid;grid-template-columns:repeat(var(--lanes),minmax(0,1fr));grid-template-rows:repeat(var(--waves),minmax(0,1fr));gap:6px}
+.cell{min-width:0;min-height:0;background:#fff;border:1px solid var(--line);border-radius:12px;padding:7px;display:flex;flex-direction:column;box-shadow:var(--shadow)}
+.name{font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px}.meta{font-size:10px;color:var(--muted)}.mini{font-weight:900;font-size:14px;font-variant-numeric:tabular-nums;margin:3px 0}
+.split{flex:1;min-height:38px;border:0;border-radius:9px;color:#fff;font-size:17px;font-weight:900;cursor:pointer}.undo{min-height:25px;margin-top:4px;border:0;border-radius:7px;background:#e8eef7;font-size:10px;font-weight:800;cursor:pointer}
+button:disabled{opacity:.35;cursor:not-allowed}
+.results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.card{background:#fff;border-radius:14px;box-shadow:var(--shadow);overflow:hidden}.cardhead{background:#eef4fb;padding:9px 11px}.cardbody{padding:9px}
+.srow{display:grid;grid-template-columns:45px 1fr 70px;gap:6px;padding:5px 7px;border-radius:7px;background:#f7f9fc;margin-top:4px;font-size:12px}.summary{border-top:1px solid var(--line);margin-top:7px;padding-top:7px;font-size:12px}
+.good{color:#16a34a}.warn{color:#f59e0b}.bad{color:#dc2626}
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}.assign{overflow-x:auto}.results{grid-template-columns:1fr}.live{height:calc(100vh - 130px);min-height:520px}}
+@media(max-width:650px){.grid{grid-template-columns:1fr}.app{padding:7px}h1{font-size:25px}.tabbtn{font-size:12px;padding:9px 4px}.live{height:calc(100vh - 115px);min-height:500px}.wavebar{overflow-x:auto}.cell{padding:5px}.name{font-size:11px}.meta{font-size:9px}.mini{font-size:12px}.split{font-size:14px}.undo{font-size:9px}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+<div class="app">
+<div class="top">
+  <div><h1>PaceCoach</h1><div class="muted">Zwemmen & lopen · pacing en splits</div></div>
+  <div class="actions"><button class="btn" id="reset">Nieuwe sessie</button><button class="btn green" id="export">Exporteer CSV</button></div>
+</div>
+
+<div class="tabs">
+  <button class="tabbtn active" data-tab="setup">1. Instellingen</button>
+  <button class="tabbtn" data-tab="live">2. Live timing</button>
+  <button class="tabbtn" data-tab="results">3. Resultaten</button>
+</div>
+
+<section class="tab active" id="setup">
+  <div class="panel">
+    <div class="grid">
+      <div><label>Activiteit</label><select id="activity"><option>Zwemmen</option><option>Lopen</option></select></div>
+      <div><label>Afstand per ronde</label><input id="distance" type="number" min="1" placeholder="25"></div>
+      <div><label>Eenheid</label><select id="unit"><option>m</option><option>km</option></select></div>
+      <div><label>Aantal banen</label><select id="lanes"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></div>
+      <div><label>Aantal waves</label><select id="waves"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></div>
+    </div>
+    <div class="add"><input id="student" placeholder="Naam leerling"><button class="btn primary" id="add">Toevoegen</button></div>
+    <div class="importrow">
+      <label class="btn filebtn" style="margin:0">Importeer Excel
+        <input id="excelImport" type="file" accept=".xlsx,.xls">
+      </label>
+      <button class="btn primary" id="randomAssign">Random indelen</button>
+      <span class="statusmsg" id="importStatus">Excel verwacht kolommen “Naam” en “Voornaam”.</span>
+    </div>
+    <div class="chips" id="chips"></div>
+  </div>
+  <div class="panel"><strong>Leerlingen indelen</strong><div class="muted" style="margin:3px 0 8px">Per baan en per wave.</div><div class="assign" id="assign"></div></div>
+</section>
+
+<section class="tab" id="live">
+  <div class="live">
+    <div class="wavebar" id="wavebar"></div>
+    <div class="timinggrid" id="timinggrid"></div>
+  </div>
+</section>
+
+<section class="tab" id="results">
+  <div class="results" id="resultcards"></div>
+</section>
+</div>
+
+<script>
+const state={students:[],lanes:4,waves:2,data:[],waveState:{},raf:null};
+const $=id=>document.getElementById(id);
+function key(w){return "w"+w}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function fmt(ms){if(!isFinite(ms)||ms<0)return"00:00.0";let m=Math.floor(ms/60000),s=Math.floor(ms%60000/1000),t=Math.floor(ms%1000/100);return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}.${t}`}
+function mean(a){return a.length?a.reduce((x,y)=>x+y,0)/a.length:0}function sd(a){if(a.length<2)return 0;let m=mean(a);return Math.sqrt(a.reduce((s,x)=>s+(x-m)**2,0)/a.length)}function cv(a){let m=mean(a);return m?sd(a)/m*100:0}
+function cls(v){return v<=3?"good":v<=7?"warn":"bad"}function label(v){return v<=3?"zeer gelijkmatig":v<=7?"redelijk gelijkmatig":"wisselend tempo"}
+function name(id){return state.students.find(s=>s.id===id)?.name||""}
+
+function normalizeHeader(s){
+  return String(s||"").trim().toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+}
+
+async function importExcel(file){
+  if(!file)return;
+  if(typeof XLSX==="undefined"){
+    alert("De Excel-module kon niet geladen worden. Controleer de internetverbinding en probeer opnieuw.");
+    return;
+  }
+  try{
+    const buffer=await file.arrayBuffer();
+    const wb=XLSX.read(buffer,{type:"array"});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const rows=XLSX.utils.sheet_to_json(ws,{defval:""});
+    if(!rows.length){alert("Het Excelbestand bevat geen gegevens.");return}
+
+    const headers=Object.keys(rows[0]);
+    const lastNameKey=headers.find(h=>normalizeHeader(h)==="naam");
+    const firstNameKey=headers.find(h=>normalizeHeader(h)==="voornaam");
+
+    if(!lastNameKey||!firstNameKey){
+      alert('Ik vind de kolommen "Naam" en "Voornaam" niet in het eerste werkblad.');
+      return;
+    }
+
+    let added=0;
+    rows.forEach(r=>{
+      const last=String(r[lastNameKey]||"").trim();
+      const first=String(r[firstNameKey]||"").trim();
+      const full=[first,last].filter(Boolean).join(" ").trim();
+      if(!full)return;
+      if(state.students.some(s=>s.name.toLowerCase()===full.toLowerCase()))return;
+      state.students.push({id:crypto.randomUUID(),name:full});
+      added++;
+    });
+
+    $("importStatus").textContent=`${added} leerling${added===1?"":"en"} geïmporteerd.`;
+    renderSetup();
+  }catch(err){
+    console.error(err);
+    alert("Het Excelbestand kon niet worden ingelezen.");
+  }finally{
+    $("excelImport").value="";
+  }
+}
+
+function randomAssignAll(){
+  if(!state.students.length){
+    alert("Voeg eerst leerlingen toe of importeer een Excelbestand.");
+    return;
+  }
+
+  const lanes=+$("lanes").value;
+  const requiredWaves=Math.ceil(state.students.length/lanes);
+
+  if(requiredWaves>4){
+    alert(`Met ${state.students.length} leerlingen en ${lanes} banen zijn ${requiredWaves} waves nodig. Deze versie ondersteunt maximaal 4 waves.`);
+    return;
+  }
+
+  $("waves").value=String(requiredWaves);
+  state.waves=requiredWaves;
+  state.waveState={};
+  state.data=[];
+  build();
+
+  const shuffled=[...state.students];
+  for(let i=shuffled.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];
+  }
+
+  let idx=0;
+  for(let w=1;w<=state.waves;w++){
+    for(let lane=0;lane<state.lanes;lane++){
+      const slot=state.data[lane][key(w)];
+      slot.studentId=idx<shuffled.length?shuffled[idx].id:null;
+      slot.splits=[];
+      idx++;
+    }
+  }
+
+  renderSetup();
+  renderLive();
+  $("importStatus").textContent=`Random verdeeld over ${state.lanes} banen en ${state.waves} wave${state.waves===1?"":"s"}.`;
+}
+
+function build(){
+  state.lanes=+$("lanes").value;state.waves=+$("waves").value;
+  while(state.data.length<state.lanes)state.data.push({});
+  state.data.length=state.lanes;
+  for(let i=0;i<state.lanes;i++)for(let w=1;w<=state.waves;w++)if(!state.data[i][key(w)])state.data[i][key(w)]={studentId:null,splits:[]};
+  for(let w=1;w<=state.waves;w++)if(!state.waveState[w])state.waveState[w]={running:false,start:null};
+  renderSetup();renderLive();
+}
+function options(cur){return `<option value="">— kies leerling —</option>`+state.students.map(s=>`<option value="${s.id}" ${s.id===cur?"selected":""}>${esc(s.name)}</option>`).join("")}
+function renderSetup(){
+  $("chips").innerHTML=state.students.map(s=>`<span class="chip">${esc(s.name)} <button data-rm="${s.id}">×</button></span>`).join("");
+  document.querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>{let id=b.dataset.rm;state.students=state.students.filter(s=>s.id!==id);state.data.forEach(l=>Object.values(l).forEach(x=>{if(x.studentId===id)x.studentId=null}));renderSetup()});
+  let a=$("assign");a.style.setProperty("--lanes",state.lanes);
+  a.innerHTML=state.data.map((l,i)=>`<div class="assigncard"><strong>Baan ${i+1}</strong>${Array.from({length:state.waves},(_,j)=>j+1).map(w=>`<div style="margin-top:5px"><label>Wave ${w}</label><select data-l="${i}" data-w="${w}" ${state.waveState[w].running?"disabled":""}>${options(l[key(w)].studentId)}</select></div>`).join("")}</div>`).join("");
+  a.querySelectorAll("select").forEach(s=>s.onchange=()=>{let x=state.data[+s.dataset.l][key(+s.dataset.w)];x.studentId=s.value||null;x.splits=[];renderLive()});
+}
+function elapsed(w){return state.waveState[w]?.running?performance.now()-state.waveState[w].start:0}
+function color(w){return ["c1","c2","c3","c4"][w-1]||"c1"}
+function renderLive(){
+  let wb=$("wavebar");wb.style.setProperty("--waves",state.waves);
+  wb.innerHTML=Array.from({length:state.waves},(_,j)=>j+1).map(w=>`<div class="wavebox"><div class="row"><strong>Wave ${w}</strong><span class="muted">${state.waveState[w].running?"Loopt":"Klaar"}</span></div><div class="clock" id="clock-${w}">${fmt(elapsed(w))}</div><button class="start ${color(w)}" data-start="${w}" ${state.waveState[w].running?"disabled":""}>START WAVE ${w}</button><button class="stopwave" data-stop="${w}" ${state.waveState[w].running?"":"disabled"}>STOP WAVE ${w}</button></div>`).join("");
+  wb.querySelectorAll("[data-start]").forEach(b=>b.onclick=()=>startWave(+b.dataset.start));
+  wb.querySelectorAll("[data-stop]").forEach(b=>b.onclick=()=>stopWave(+b.dataset.stop));
+  let g=$("timinggrid");g.style.setProperty("--lanes",state.lanes);g.style.setProperty("--waves",state.waves);
+  let cells=[];for(let w=1;w<=state.waves;w++)for(let i=0;i<state.lanes;i++){let x=state.data[i][key(w)],active=state.waveState[w].running&&x.studentId;
+    cells.push(`<div class="cell"><div><div class="name">${x.studentId?esc(name(x.studentId)):"Geen leerling"}</div><div class="meta">Wave ${w} · Baan ${i+1} · ${x.splits.length} splits</div><div class="mini" id="mini-${w}-${i}">${fmt(elapsed(w))}</div></div><button class="split ${color(w)}" data-s="${w}-${i}" ${active?"":"disabled"}>SPLIT</button><button class="undo" data-u="${w}-${i}" ${x.splits.length?"":"disabled"}>↶ laatste split</button></div>`)
+  }g.innerHTML=cells.join("");
+  g.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{let [w,i]=b.dataset.s.split("-").map(Number);let x=state.data[i][key(w)];x.splits.push(performance.now()-state.waveState[w].start);renderLive()});
+  g.querySelectorAll("[data-u]").forEach(b=>b.onclick=()=>{let [w,i]=b.dataset.u.split("-").map(Number);state.data[i][key(w)].splits.pop();renderLive()});
+}
+function startWave(w){if(!state.data.some(l=>l[key(w)].studentId)){alert(`Kies minstens één leerling voor Wave ${w}.`);return}state.data.forEach(l=>l[key(w)].splits=[]);state.waveState[w]={running:true,start:performance.now()};renderSetup();renderLive();tick()}
+function stopWave(w){
+  if(!state.waveState[w]||!state.waveState[w].running)return;
+  state.waveState[w].running=false;
+  if(!Object.values(state.waveState).some(x=>x.running)&&state.raf){cancelAnimationFrame(state.raf);state.raf=null}
+  renderSetup();renderLive();
+}
+function tick(){if(state.raf)return;function loop(){for(let w=1;w<=state.waves;w++){let e=elapsed(w),c=$(`clock-${w}`);if(c)c.textContent=fmt(e);for(let i=0;i<state.lanes;i++){let m=$(`mini-${w}-${i}`);if(m)m.textContent=fmt(e)}}if(Object.values(state.waveState).some(x=>x.running))state.raf=requestAnimationFrame(loop);else state.raf=null}state.raf=requestAnimationFrame(loop)}
+function durations(a){return a.map((v,i)=>i?v-a[i-1]:v)}
+function renderResults(){let cards=[];for(let w=1;w<=state.waves;w++)for(let i=0;i<state.lanes;i++){let x=state.data[i][key(w)];if(!x.studentId)continue;let d=durations(x.splits),m=mean(d),v=cv(d),lapDist=parseFloat($("distance").value)||0,totalDist=lapDist*d.length,distUnit=$("unit").value;cards.push(`<div class="card"><div class="cardhead"><strong>${esc(name(x.studentId))}</strong><div class="muted">Wave ${w} · Baan ${i+1} · Afgelegd: ${lapDist?totalDist+" "+distUnit:"—"}</div></div><div class="cardbody">${d.length?d.map((t,j)=>{let p=m?(t-m)/m*100:0;return `<div class="srow"><span>R${j+1}</span><strong>${fmt(t)}</strong><span class="${Math.abs(p)<=3?"good":Math.abs(p)<=7?"warn":"bad"}">${d.length>1?(p>0?"+":"")+p.toFixed(1)+"%":"—"}</span></div>`}).join(""):'<div class="muted">Nog geen splits.</div>'}${d.length>=2?`<div class="summary">Variatie: <strong class="${cls(v)}">${v.toFixed(1)}%</strong> · ${label(v)}</div>`:""}</div></div>`)}$("resultcards").innerHTML=cards.join("")||'<div class="panel"><div class="muted">Nog geen resultaten.</div></div>'}
+function exportCSV(){let rows=[["Wave","Leerling","Activiteit","Baan","Afstand","Ronde","Rondetijd_ms","Cumulatieve_tijd_ms","Variatie_pct"]],n=0;for(let w=1;w<=state.waves;w++)for(let i=0;i<state.lanes;i++){let x=state.data[i][key(w)];if(!x.studentId||!x.splits.length)continue;let d=durations(x.splits),v=cv(d),c=0;d.forEach((t,j)=>{c+=t;rows.push([w,name(x.studentId),$("activity").value,i+1,$("distance").value?$("distance").value+" "+$("unit").value:"",j+1,Math.round(t),Math.round(c),v.toFixed(2)]);n++})}if(!n){alert("Nog geen splits om te exporteren.");return}let csv=rows.map(r=>r.map(v=>`"${String(v).replaceAll('"','""')}"`).join(";")).join("\n"),blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="pacecoach.csv";a.click();URL.revokeObjectURL(url)}
+document.querySelectorAll(".tabbtn").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tabbtn,.tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");$(b.dataset.tab).classList.add("active");if(b.dataset.tab==="results")renderResults();if(b.dataset.tab==="live")renderLive()});
+$("add").onclick=()=>{let n=$("student").value.trim();if(!n)return;state.students.push({id:crypto.randomUUID(),name:n});$("student").value="";renderSetup()};
+$("student").onkeydown=e=>{if(e.key==="Enter")$("add").click()};$("excelImport").onchange=e=>importExcel(e.target.files[0]);$("randomAssign").onclick=randomAssignAll;$("lanes").onchange=build;$("waves").onchange=build;$("export").onclick=exportCSV;
+$("reset").onclick=()=>{if(!confirm("Alles wissen en een nieuwe sessie starten?"))return;if(state.raf)cancelAnimationFrame(state.raf);state.students=[];state.data=[];state.waveState={};$("lanes").value="4";$("waves").value="2";$("distance").value="";$("unit").value="m";$("activity").value="Zwemmen";build();document.querySelector('[data-tab="setup"]').click()};
+build();
+</script>
+</body>
+</html>
