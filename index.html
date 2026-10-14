@@ -1,231 +1,304 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="nl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
-<title>PaceCoach</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Timer · lo-tools.be</title>
 <style>
-:root{--bg:#f4f7fb;--card:#fff;--text:#182230;--muted:#6b7785;--line:#dbe3ec;--blue:#2563eb;--purple:#7c3aed;--green:#16a34a;--red:#dc2626;--shadow:0 6px 20px rgba(15,23,42,.08)}
-*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
-button,input,select{font:inherit}button{touch-action:manipulation}.app{max-width:1400px;margin:auto;padding:10px}
-.top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
-h1{margin:0;font-size:30px}.muted{color:var(--muted);font-size:12px}.actions{display:flex;gap:7px;flex-wrap:wrap}
-.btn{border:0;border-radius:11px;padding:10px 14px;font-weight:800;background:#e8eef7;cursor:pointer}.btn.primary{background:var(--blue);color:#fff}.btn.green{background:var(--green);color:#fff}
-.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:9px}.tabbtn{border:0;border-radius:12px;padding:11px 8px;font-weight:900;background:#e8eef7;cursor:pointer}.tabbtn.active{background:var(--blue);color:#fff}
-.tab{display:none}.tab.active{display:block}.panel{background:var(--card);border-radius:16px;padding:13px;box-shadow:var(--shadow);margin-bottom:10px}
-.grid{display:grid;grid-template-columns:repeat(5,minmax(120px,1fr));gap:8px}label{display:block;font-size:11px;font-weight:800;color:var(--muted);margin-bottom:4px}
-input,select{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff}
-.add{display:flex;gap:7px;margin-top:10px}.add input{flex:1}.importrow{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px;align-items:center}.filebtn{position:relative;overflow:hidden}.filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer}.statusmsg{font-size:11px;color:var(--muted)}.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.chip{background:#edf2f7;border-radius:999px;padding:6px 9px;font-size:12px}.chip button{border:0;background:none;font-weight:900;cursor:pointer}
-.assign{display:grid;grid-template-columns:repeat(var(--lanes),minmax(150px,1fr));gap:7px}.assigncard{border:1px solid var(--line);border-radius:12px;padding:8px;background:#fafbfd}.assigncard strong{display:block;margin-bottom:6px}
-.live{height:calc(100vh - 125px);min-height:560px;display:grid;grid-template-rows:auto 1fr;gap:7px}
-.wavebar{display:grid;grid-template-columns:repeat(var(--waves),minmax(150px,1fr));gap:7px}.wavebox{background:#fff;border:1px solid var(--line);border-radius:13px;padding:8px;box-shadow:var(--shadow)}
-.wavebox .row{display:flex;justify-content:space-between;gap:6px;align-items:center}.clock{font-weight:900;font-size:20px;font-variant-numeric:tabular-nums;margin:3px 0}.start{width:100%;border:0;border-radius:9px;min-height:38px;color:#fff;font-weight:900;cursor:pointer}.stopwave{width:100%;border:0;border-radius:9px;min-height:32px;margin-top:4px;background:#dc2626;color:#fff;font-size:11px;font-weight:900;cursor:pointer}
-.c1{background:#2563eb}.c2{background:#7c3aed}.c3{background:#0f766e}.c4{background:#b45309}
-.timinggrid{min-height:0;display:grid;grid-template-columns:repeat(var(--lanes),minmax(0,1fr));grid-template-rows:repeat(var(--waves),minmax(0,1fr));gap:6px}
-.cell{min-width:0;min-height:0;background:#fff;border:1px solid var(--line);border-radius:12px;padding:7px;display:flex;flex-direction:column;box-shadow:var(--shadow)}
-.name{font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px}.meta{font-size:10px;color:var(--muted)}.mini{font-weight:900;font-size:14px;font-variant-numeric:tabular-nums;margin:3px 0}
-.split{flex:1;min-height:38px;border:0;border-radius:9px;color:#fff;font-size:17px;font-weight:900;cursor:pointer}.undo{min-height:25px;margin-top:4px;border:0;border-radius:7px;background:#e8eef7;font-size:10px;font-weight:800;cursor:pointer}
-button:disabled{opacity:.35;cursor:not-allowed}
-.results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.card{background:#fff;border-radius:14px;box-shadow:var(--shadow);overflow:hidden}.cardhead{background:#eef4fb;padding:9px 11px}.cardbody{padding:9px}
-.srow{display:grid;grid-template-columns:45px 1fr 70px;gap:6px;padding:5px 7px;border-radius:7px;background:#f7f9fc;margin-top:4px;font-size:12px}.summary{border-top:1px solid var(--line);margin-top:7px;padding-top:7px;font-size:12px}
-.good{color:#16a34a}.warn{color:#f59e0b}.bad{color:#dc2626}
-@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}.assign{overflow-x:auto}.results{grid-template-columns:1fr}.live{height:calc(100vh - 130px);min-height:520px}}
-@media(max-width:650px){.grid{grid-template-columns:1fr}.app{padding:7px}h1{font-size:25px}.tabbtn{font-size:12px;padding:9px 4px}.live{height:calc(100vh - 115px);min-height:500px}.wavebar{overflow-x:auto}.cell{padding:5px}.name{font-size:11px}.meta{font-size:9px}.mini{font-size:12px}.split{font-size:14px}.undo{font-size:9px}}
+:root{--bg:#f5f5f2;--card:#fff;--ink:#111;--muted:#737373;--line:#d9d9d4;--soft:#ecece7;--ok:#c9f2d7;--ready:#ffffff;--waiting:#e8e8e3;--running:#111111;--radius:16px}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+.app{max-width:920px;margin:auto;padding:24px 16px 56px}.top{display:flex;justify-content:space-between;gap:16px;align-items:end;margin-bottom:24px}.brand h1{font-size:30px;letter-spacing:-.04em;margin:0}.brand p{margin:5px 0 0;color:var(--muted);font-size:14px}.tabs{display:flex;gap:6px;background:var(--soft);padding:4px;border-radius:12px}.tab{border:0;background:transparent;padding:9px 14px;border-radius:9px;font-weight:700;color:var(--muted);cursor:pointer}.tab.active{background:#fff;color:#111;box-shadow:0 1px 3px #00000012}.panel{display:none}.panel.active{display:block}.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:14px}.section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}.section-head h2{font-size:18px;margin:0;letter-spacing:-.02em}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.field label{display:block;font-size:12px;font-weight:800;color:var(--muted);margin:0 0 6px;text-transform:uppercase;letter-spacing:.04em}input,select{width:100%;border:1px solid var(--line);background:#fff;border-radius:10px;padding:11px 12px;font:inherit;color:inherit}button{font:inherit}.btn{border:1px solid #111;background:#111;color:#fff;border-radius:11px;padding:11px 15px;font-weight:800;cursor:pointer}.btn.secondary{background:#fff;color:#111;border-color:var(--line)}.btn.ghost{background:transparent;color:#111;border-color:transparent}.btn:disabled{opacity:.4;cursor:not-allowed}.student-row{display:grid;grid-template-columns:70px 1fr 120px 42px;gap:9px;align-items:center;margin:8px 0}.lane-tag{font-weight:800;font-size:13px;color:var(--muted)}.remove{width:42px;height:42px;border:0;background:var(--soft);border-radius:10px;font-size:18px;cursor:pointer}.hint{color:var(--muted);font-size:13px;line-height:1.45}.wave{margin-bottom:18px}.wave-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.wave-title{font-size:20px;font-weight:850}.clock{font-variant-numeric:tabular-nums;font-size:20px;font-weight:800}.start{width:100%;padding:15px;border:0;border-radius:12px;background:#111;color:#fff;font-weight:850;font-size:16px;margin-bottom:10px;cursor:pointer}.start.running{background:#fff;color:#111;border:1px solid var(--line)}.swimmer{display:grid;grid-template-columns:52px 1fr 132px;gap:10px;align-items:center;padding:11px 0;border-top:1px solid var(--soft)}.lane{font-weight:850;color:var(--muted)}.name{font-weight:800}.finish{border:1px solid #111;background:#fff;color:#111;border-radius:11px;padding:12px 10px;font-weight:850;cursor:pointer;min-height:46px}.finish.done{background:var(--ok);border-color:transparent}.results{overflow:auto}.results table{width:100%;border-collapse:collapse;min-width:650px}.results th,.results td{text-align:left;border-bottom:1px solid var(--soft);padding:11px 8px;font-size:14px}.results th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}.results input{max-width:90px;padding:8px}.score{font-weight:900}.empty{text-align:center;padding:38px 15px;color:var(--muted)}.actions{display:flex;gap:8px;flex-wrap:wrap}.pill{display:inline-block;background:var(--soft);border-radius:999px;padding:5px 9px;font-size:12px;font-weight:800;color:var(--muted)}
+.importbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}.setup-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 14px}.filebtn{display:inline-block}.pool-wrap{overflow-x:auto;padding-bottom:8px}.pool{min-width:max-content}.pool-vertical{display:grid;grid-template-columns:62px repeat(var(--lanes),minmax(118px,1fr));gap:6px;align-items:stretch}.pool-vertical .corner,.pool-vertical .lane-header,.pool-vertical .wave-side{display:flex;align-items:center;justify-content:center;min-height:42px;font-size:12px;font-weight:900;color:var(--muted)}.pool-vertical .wave-side{justify-content:flex-start}.pool-vertical .lane-header{background:var(--soft);border-radius:10px;color:var(--ink)}.pool-label,.wave-label{display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:var(--muted);min-height:36px}.pool-label{justify-content:flex-start}.wave-start{border:2px solid #111;background:#fff;color:#111;border-radius:10px;padding:9px 6px;font-weight:900;cursor:pointer;min-height:48px}.wave-start .start-word{font-size:13px;letter-spacing:.04em}.wave-start .wave-word{font-size:10px;color:var(--muted);margin-top:2px}.wave-start.running{background:#111;color:#fff;border-color:#111}.wave-start:disabled{opacity:.65}.pool-cell{position:relative;border:1px solid var(--line);background:#fff;border-radius:12px;min-height:96px;padding:8px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;text-align:left}.pool-cell.waiting{background:var(--waiting);color:#777;cursor:default}.pool-cell.live{background:#111;color:#fff;border-color:#111}.pool-cell.live .pc-action{color:#fff}.pool-cell.done{background:var(--ok);border-color:#55a96f;color:#0b3d1a}.pool-cell.empty{opacity:.25;cursor:default}.pool-cell .pc-name{font-weight:850;font-size:14px;max-width:105px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pool-cell .pc-time{font-size:18px;font-weight:900;font-variant-numeric:tabular-nums;margin-top:8px}.pool-cell .pc-action{font-size:11px;color:var(--muted);font-weight:800;margin-top:6px}.setup-pool-cell{border:1px solid var(--line);background:#fff;border-radius:12px;min-height:80px;padding:7px;display:flex;flex-direction:column;gap:6px}.setup-pool-cell input{padding:9px 10px;font-weight:800}.setup-wave{font-size:11px;font-weight:900;color:var(--muted)}.queue-note{margin:0 0 12px}.test-note{margin-bottom:10px}.compact-actions{display:flex;justify-content:flex-end;margin:10px 0 14px}.compact-actions .btn{padding:9px 12px}
+@media(max-width:700px){.top{display:block}.tabs{margin-top:16px;width:100%}.tab{flex:1}.grid{grid-template-columns:1fr}.student-row{grid-template-columns:58px 1fr 90px 40px}.swimmer{grid-template-columns:42px 1fr 118px}.app{padding-top:16px}.brand h1{font-size:27px}}
+
+body{background:#f7f7f7}.app{max-width:none;padding:0}.site-header{height:72px;background:#fff;border-bottom:1px solid #e4e4e4;display:flex;align-items:stretch;justify-content:space-between;padding:0 34px;gap:20px}.site-brand{display:flex;align-items:center;white-space:nowrap;font-size:20px;letter-spacing:-.04em}.site-brand span{color:#888;font-weight:650}.tabs{margin:0;background:transparent;padding:0;gap:26px;border-radius:0;align-items:stretch}.tab{border-radius:0;padding:0 4px;border-bottom:4px solid transparent;font-size:17px;color:#818181}.tab.active{background:transparent;box-shadow:none;border-bottom-color:#111;color:#111}.page-content{max-width:1180px;margin:20px auto;padding:0 20px 50px}.card{border:1px solid #e4e4e4;border-radius:22px;padding:24px}.pool{width:100%}.pool-vertical{grid-template-columns:65px repeat(var(--lanes),minmax(110px,1fr))}.setup-toolbar{gap:9px}.btn{border-radius:10px}@media(max-width:700px){.site-header{height:auto;min-height:65px;padding:10px 16px;flex-wrap:wrap}.site-brand{font-size:19px}.tabs{gap:16px}.tab{font-size:14px;padding:10px 0}.page-content{padding:0 12px 30px}.card{padding:14px}}
+.info-toggle{background:transparent;border:0;color:#666;font-size:13px;font-weight:700;cursor:pointer;padding:7px 3px}.info-toggle:hover{color:#111}.setup-info{padding:0 0 14px;max-width:760px}.setup-info[hidden]{display:none}
+.measure-options{display:flex;flex-wrap:wrap;gap:18px;margin-top:16px}.measure-options label{display:flex;gap:8px;align-items:center;font-size:14px;font-weight:650}.measure-options input{width:auto}.pool-cell{cursor:default}.cell-buttons{display:flex;flex-direction:column;gap:3px;margin-top:auto;padding-top:10px}.cell-buttons button{font:inherit;cursor:pointer}.split-btn{width:100%;background:#141414;color:#fff;border:0;border-radius:9px;min-height:60px;font-weight:850;font-size:17px;letter-spacing:.02em}.cell-secondary{display:flex;justify-content:space-between;align-items:center;min-height:30px;gap:8px}.finish-btn{background:transparent;border:0;border-radius:5px;color:#444;font-size:11px;font-weight:850;padding:7px 3px;cursor:pointer}.finish-btn:hover{color:#000;text-decoration:underline}.undo-btn{background:transparent;border:0!important;border-radius:5px;min-width:34px;min-height:30px!important;color:#777;font-size:19px;cursor:pointer}.undo-btn:hover{color:#111}.cell-secondary .finish-btn{margin-left:auto}.pool-cell.live .pc-time{font-size:20px}.pool-cell.live .result-mini{margin-bottom:0}
+.pool-cell.live{background:#fff;color:#111}.pool-cell.live .pc-action{color:#555}.wave-start.running{background:#111;color:white}.wave-finish{background:#fff;border:1px solid #111;border-radius:8px;padding:7px;font-size:11px;font-weight:800;cursor:pointer}.wave-start{min-height:60px}.wave-start:disabled{cursor:default}.result-mini{font-size:11px;color:#555;margin-top:4px}.results th,.results td{white-space:nowrap}.setup-pool-cell{min-height:60px}.setup-wave{display:none}#durationField[hidden],#timedOptions[hidden]{display:none}.result-help{margin-bottom:12px}
+
+/* Testweergave v5: actieve leerling zonder dubbel statuswoord; bediening maximaal groot. */
+.pool-cell.live .pc-name{margin-bottom:2px}
+.pool-cell.live .result-mini{margin-top:0;margin-bottom:8px}
+.pool-cell.live .cell-buttons{flex:1;min-height:108px}
+.pool-cell.live .cell-buttons .split-btn{flex:1;min-height:80px;font-size:19px}
+.pool-cell.live .cell-buttons .cell-secondary{flex:0 0 39px}
+.wave-control{display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;padding-bottom:55px;min-width:0}
+.wave-control .wave-start{min-height:80px;width:100%;display:flex;flex-direction:column;justify-content:center;align-items:center}
+.wave-control .wave-finish{margin-top:5px}
+
+/* Compacte, geïntegreerde split-/finishbediening */
+.cell-buttons{gap:0;border:1px solid #dededb;border-radius:10px;overflow:hidden;margin-top:auto;padding-top:0;background:#fff}
+.cell-buttons .split-btn{border-radius:0;min-height:66px}
+.cell-buttons .cell-secondary{padding:0 9px;min-height:39px}
+.cell-buttons .finish-btn{font-size:12px;font-weight:850;min-height:37px;padding:8px 6px}
+.cell-buttons .undo-btn{min-height:37px!important}
+.cell-buttons:has(> .split-btn:only-child){border:0}
+.stop-choice{grid-column:span 2}
+.stop-options{display:flex;flex-wrap:wrap;gap:12px 22px;margin:5px 0 7px}
+.stop-options label{display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:14px;color:#111;font-weight:650;margin:0;cursor:pointer}
+.stop-options input{width:auto;margin:0;accent-color:#111}
+.stop-example{color:#777;font-size:12px}
+@media(max-width:700px){.stop-choice{grid-column:auto}.stop-options{flex-direction:column;gap:10px}}
+.pool-cell.live .cell-buttons .split-btn{min-height:80px;flex:1}
+.results table{table-layout:auto;width:100%}
+.results th:nth-child(2),.results td:nth-child(2),
+.results th:nth-child(3),.results td:nth-child(3){width:66px;min-width:66px;max-width:66px;text-align:center;padding-left:5px;padding-right:5px}
+.results th:first-child,.results td:first-child{min-width:150px}
+.results th:nth-child(4),.results td:nth-child(4){width:120px;white-space:nowrap}
+.results th:nth-child(5),.results td:nth-child(5){min-width:180px}
+
+/* V6: wave-status even hoog als het gecombineerde SPLIT/FINISH-bedieningsvlak. */
+.wave-control{padding-bottom:16px}
+.wave-control .wave-start{height:120px;min-height:120px}
+/* Compacte instellingen: twee rijen op brede schermen. */
+.settings-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.settings-grid .field{min-width:0}
+.settings-grid select,.settings-grid input{min-width:0}
+@media(max-width:850px){.settings-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:440px){.settings-grid{grid-template-columns:1fr}}
+
+/* V8: het bedieningsvlak IS de leerlingkaart, zonder buitenste kader. */
+.pool-cell.compact-live{padding:0;border:0;background:transparent;border-radius:12px;min-height:120px;overflow:hidden}
+.pool-cell.compact-live .cell-buttons{display:flex;flex-direction:column;flex:1;min-height:120px;margin:0;border:1px solid #dededb;border-radius:12px;overflow:hidden;background:#fff}
+.pool-cell.compact-live .split-btn{flex:1;min-height:72px;width:100%;border-radius:0;font-size:19px}
+.pool-cell.compact-live .split-placeholder{flex:1;background:#141414;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+.pool-cell.compact-live .cell-secondary{flex:0 0 47px;min-height:47px;padding:4px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.student-info{display:flex;flex-direction:column;min-width:0;flex:1;line-height:1.2}
+.student-name{font-size:14px;font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.student-count{font-size:11px;color:#777;margin-top:3px}
+.secondary-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.pool-cell.compact-live .finish-btn{font-size:12px;min-height:38px;padding:6px 4px}
+.pool-cell.compact-live .undo-btn{min-height:38px!important}
+.wave-control{padding-bottom:0;display:flex;flex-direction:column;justify-content:center}
+.wave-control .wave-start{height:120px;min-height:120px}
+.wave-countdown-label{font-size:9px;font-weight:750;letter-spacing:.05em;opacity:.8;margin-top:6px}
+.wave-countdown{font-size:15px;font-weight:900;font-variant-numeric:tabular-nums;white-space:nowrap}
+.wave-control .wave-start:has(.wave-countdown){height:120px;min-height:120px}
+.extraInput{width:85px;max-width:100%;padding:6px 8px}.measure-options#timedOptions{margin-top:12px}
+
+.settings-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.settings-grid .field{min-width:0}
+.settings-grid .field select,.settings-grid .field input{min-width:0}
+.settings-actions{margin:18px 0 0;gap:8px}
+.measure-dialog{width:min(440px,calc(100vw - 30px));border:1px solid #dedede;border-radius:20px;padding:24px;box-shadow:0 22px 80px #0003;color:#171717;background:#fff}
+.measure-dialog::backdrop{background:#0005}
+.measure-dialog-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.measure-dialog h2{margin:0;font-size:20px}
+.close-measure{border:0;background:none;font-size:30px;cursor:pointer}
+.modal-checks{display:flex;flex-direction:column;gap:18px;margin:20px 0}
+.modal-checks label{display:flex;gap:10px;align-items:center;font-weight:650}
+.modal-checks input{width:18px;height:18px;flex:none}
+#lapsField[hidden],#durationField[hidden],#extraMetersRow[hidden]{display:none}
+@media(max-width:1000px){.settings-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:600px){.settings-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* V13: vijf velden op rij 1; teststop en acties op rij 2 */
+.settings-second-row{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;margin-top:12px}
+.settings-second-row .stop-field{flex:0 0 245px;min-width:195px}
+.settings-second-row #lapsField,.settings-second-row #durationField{flex:0 0 155px;min-width:135px}
+.settings-second-row .settings-actions{margin:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1 1 auto}
+.settings-second-row .settings-actions .btn{white-space:nowrap}
+@media(min-width:1100px){.settings-grid{grid-template-columns:minmax(90px,.75fr) minmax(90px,.75fr) minmax(120px,1fr) minmax(130px,1.05fr) minmax(70px,.55fr)!important}}
+@media(max-width:700px){.settings-second-row .stop-field{flex:1 1 100%}.settings-second-row .settings-actions{flex:1 1 100%}}
+/* V12: compacte instellingen, één omlijning per naam */
+@media(min-width:1100px){
+  .settings-grid{
+    grid-template-columns:minmax(90px,.75fr) minmax(90px,.75fr) minmax(120px,1fr) minmax(130px,1.05fr) minmax(70px,.55fr) minmax(195px,1.55fr);
+    gap:10px;
+  }
+}
+.setup-pool-cell.studentNaam{
+  display:block;width:100%;min-width:0;min-height:56px;height:56px;
+  margin:0;padding:12px 14px;border:1px solid var(--line);
+  border-radius:12px;background:#fff;box-shadow:none;
+  font-size:16px;font-weight:750;
+}
+.setup-pool-cell.studentNaam:focus{outline:2px solid #222;outline-offset:-2px}
+
+/* V14 — split-dashboard zonder extra omlijstingen. */
+.pool-cell.compact-live .cell-buttons{border:0;border-radius:12px;overflow:hidden}
+.pool-cell.compact-live .info-split{
+ display:flex;flex-direction:column;justify-content:space-between;text-align:left;
+ padding:12px 14px;gap:8px;min-height:105px;border:0;border-radius:0;
+}
+.split-head{display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%;font-weight:800;font-size:16px}
+.split-count{font-size:11px;font-weight:600;color:#bcbcbc;white-space:nowrap}
+.split-data{display:flex;align-items:flex-end;justify-content:space-between;gap:6px;width:100%;min-width:0}
+.split-last{display:flex;flex-direction:column;gap:2px;min-width:0}
+.split-caption{font-size:10px;letter-spacing:.025em;color:#bcbcbc;font-weight:700}
+.split-value{font-size:clamp(16px,1.9vw,25px);font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums;white-space:nowrap}
+.split-delta{font-size:clamp(10px,1.15vw,15px);font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums}
+.split-delta.faster{color:#86efac}.split-delta.slower{color:#fca5a5}.split-delta.equal{color:#d4d4d4}
+.pool-cell.compact-live .cell-secondary{min-height:51px;flex-basis:51px;padding:4px 9px}
+.pool-cell.compact-live .finish-btn{border:1.5px solid #242424;border-radius:7px;min-height:44px;padding:7px 12px;font-size:13px;color:#111;background:#fff;text-decoration:none}
+.pool-cell.compact-live .undo-btn{min-width:44px;min-height:44px!important;font-size:22px}
+@media(max-width:760px){
+ .pool-cell.compact-live .info-split{padding:10px 8px;min-height:94px}
+ .split-head{font-size:13px}.split-count{font-size:10px}
+ .split-data{flex-wrap:wrap;row-gap:3px}.split-delta{font-size:11px}
+ .pool-cell.compact-live .finish-btn{padding:6px 8px}
+}
+
+/* V15: alle leerlingcellen behouden exact dezelfde hoogte in elke status. */
+#test .pool-vertical .pool-cell{height:164px;min-height:164px;box-sizing:border-box;overflow:hidden}
+#test .pool-vertical .pool-cell.compact-live .cell-buttons{height:100%;min-height:0;box-sizing:border-box}
+#test .pool-vertical .pool-cell.compact-live .info-split{flex:1 1 auto;min-height:0}
+#test .pool-vertical .pool-cell.compact-live .cell-secondary{flex:0 0 51px;min-height:51px}
+#test .pool-vertical .wave-control{height:164px;min-height:164px;box-sizing:border-box}
+#test .pool-vertical .wave-control .wave-start,
+#test .pool-vertical .wave-control .wave-start:has(.wave-countdown){height:164px;min-height:164px;box-sizing:border-box}
+
+/* V18: vaste COMPACTE rijhoogte; geen ongedefinieerde --waves in repeat(). */
+#test .pool-vertical{
+  grid-template-rows:42px;
+  grid-auto-rows:120px;
+  align-items:stretch;
+}
+#test .pool-vertical .pool-cell,
+#test .pool-vertical .pool-cell.compact-live,
+#test .pool-vertical .wave-control{
+  height:120px;min-height:120px;max-height:120px;
+  box-sizing:border-box;align-self:stretch;
+}
+#test .pool-vertical .pool-cell.compact-live .cell-buttons{
+  height:100%;min-height:0;margin:0;padding:0;box-sizing:border-box;
+}
+#test .pool-vertical .pool-cell.compact-live .info-split{
+  min-height:0;flex:1 1 0;
+}
+#test .pool-vertical .pool-cell.compact-live .cell-secondary{
+  flex:0 0 47px;min-height:47px;
+}
+#test .pool-vertical .wave-control{padding-bottom:0}
+#test .pool-vertical .wave-control .wave-start,
+#test .pool-vertical .wave-control .wave-start:has(.wave-countdown){
+  height:120px;min-height:120px;max-height:120px;box-sizing:border-box;
+}
+#test .pool-vertical .pool-cell.done,
+#test .pool-vertical .pool-cell.waiting{padding:9px 11px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 <div class="app">
-<div class="top">
-  <div><h1>PaceCoach</h1><div class="muted">Zwemmen & lopen · pacing en splits</div></div>
-  <div class="actions"><button class="btn" id="reset">Nieuwe sessie</button><button class="btn green" id="export">Exporteer CSV</button></div>
-</div>
-
-<div class="tabs">
-  <button class="tabbtn active" data-tab="setup">1. Instellingen</button>
-  <button class="tabbtn" data-tab="live">2. Live timing</button>
-  <button class="tabbtn" data-tab="results">3. Resultaten</button>
-</div>
-
-<section class="tab active" id="setup">
-  <div class="panel">
-    <div class="grid">
-      <div><label>Activiteit</label><select id="activity"><option>Zwemmen</option><option>Lopen</option></select></div>
-      <div><label>Afstand per ronde</label><input id="distance" type="number" min="1" placeholder="25"></div>
-      <div><label>Eenheid</label><select id="unit"><option>m</option><option>km</option></select></div>
-      <div><label>Aantal banen</label><select id="lanes"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></div>
-      <div><label>Aantal waves</label><select id="waves"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></div>
+  <header class="site-header"><div class="site-brand"><strong>lo-tools.be</strong><span> · Timer</span></div><nav class="tabs" aria-label="Navigatie"><button class="tab active" data-tab="setup">Instellen</button><button class="tab" data-tab="test">Test</button><button class="tab" data-tab="results">Resultaten</button></nav></header>
+  <main class="page-content">
+  <section id="setup" class="panel active">
+    <div class="card">
+      <div class="section-head"><h2>Testinstellingen</h2></div>
+      <div class="grid settings-grid">
+        <div class="field"><label>Aantal banen</label><select id="lanes"></select></div>
+        <div class="field"><label>Aantal waves</label><select id="waves"></select></div>
+        <div class="field"><label>Activiteit</label><select id="activity"><option>Zwemmen</option><option>Lopen</option><option>Fietsen</option></select></div>
+        <div class="field"><label>Afstand per ronde</label><input id="distance" type="number" min="0" step="any" value="50" placeholder="bv. 50" /></div>
+        <div class="field"><label>Eenheid</label><select id="unit"><option>m</option><option>km</option></select></div>
+        </div>
+      <div class="settings-second-row"><div class="field stop-field"><label for="stopMode">Wanneer stopt de test?</label><select id="stopMode"><option value="free">Vrij</option><option value="distance">Na bepaalde afstand</option><option value="duration">Na bepaalde tijd</option></select></div>
+        <div class="field" id="lapsField" hidden><label>Aantal rondes</label><input id="laps" type="number" min="1" step="1" placeholder="bv. 4" /></div>
+        <div class="field" id="durationField" hidden><label>Testduur (minuten)</label><input id="duration" type="number" min="0" step="any" placeholder="bv. 5" /></div>
+      <div class="setup-toolbar settings-actions"><button class="btn" id="goTest">Start test</button><button class="btn secondary" id="clearAll">Wissen</button><label class="btn secondary filebtn">Klaslijst importeren<input id="studentFile" type="file" accept=".xlsx,.xls,.csv" hidden></label><button class="btn secondary" id="openMeasurements" type="button">Extra <span id="measurementCount"></span></button><span class="hint" id="importStatus"></span></div>
+      </div>
     </div>
-    <div class="add"><input id="student" placeholder="Naam leerling"><button class="btn primary" id="add">Toevoegen</button></div>
-    <div class="importrow">
-      <label class="btn filebtn" style="margin:0">Importeer Excel
-        <input id="excelImport" type="file" accept=".xlsx,.xls">
-      </label>
-      <button class="btn primary" id="randomAssign">Random indelen</button>
-      <span class="statusmsg" id="importStatus">Excel verwacht kolommen “Naam” en “Voornaam”.</span>
+    <div class="card">
+      <div class="section-head"><h2>Leerlingen</h2><button class="info-toggle" id="setupInfoBtn" type="button" aria-expanded="false" aria-controls="setupInfo">Meer info <span aria-hidden="true">▾</span></button></div><div class="hint setup-info" id="setupInfo" hidden>Vul de namen in of importeer een klaslijst (Excel of CSV). Elke baan is een kolom. Wave 1 start eerst; de volgende waves staan eronder. Met Enter ga je naar de volgende leerling.</div>
+      
+      <div class="pool-wrap"><div id="studentGrid" class="pool"></div></div>
     </div>
-    <div class="chips" id="chips"></div>
-  </div>
-  <div class="panel"><strong>Leerlingen indelen</strong><div class="muted" style="margin:3px 0 8px">Per baan en per wave.</div><div class="assign" id="assign"></div></div>
-</section>
+  </section>
 
-<section class="tab" id="live">
-  <div class="live">
-    <div class="wavebar" id="wavebar"></div>
-    <div class="timinggrid" id="timinggrid"></div>
-  </div>
-</section>
+  <dialog id="measureDialog" class="measure-dialog" aria-labelledby="measureTitle"><div class="measure-dialog-head"><h2 id="measureTitle">Extra metingen</h2><button type="button" id="closeMeasurements" class="close-measure" aria-label="Sluiten">×</button></div><p class="hint">Kies welke gegevens je naast de tijd wilt registreren.</p><div class="modal-checks"><label><input id="useStrokes" type="checkbox"> Slagen / SWOLF</label><label><input id="useSplits" type="checkbox"> Splits</label><label><input id="usePace" type="checkbox"> Gelijkmatigheid (CV)</label><label id="extraMetersRow" hidden><input id="extraMeters" type="checkbox"> Extra afstand registreren</label></div><button type="button" id="saveMeasurements" class="btn">Klaar</button></dialog>
+  <section id="test" class="panel">
+    <div id="wavesArea"></div>
+  </section>
 
-<section class="tab" id="results">
-  <div class="results" id="resultcards"></div>
-</section>
+  <section id="results" class="panel">
+    <div class="card">
+      <div class="section-head"><div><h2>Resultaten</h2><div class="hint">Vul eventueel het aantal slagen in. Gelijkmatigheid = variatiecoëfficiënt (CV) van de rondetijden.</div></div><span class="pill" id="completePill">0 klaar</span></div>
+      <div class="results" id="resultsArea"></div>
+    </div>
+    <div class="actions"><button class="btn" id="exportCsv">Exporteer CSV</button><button class="btn secondary" id="backTest">Terug naar test</button></div>
+  </section>
+  </main>
 </div>
-
 <script>
-const state={students:[],lanes:4,waves:2,data:[],waveState:{},raf:null};
-const $=id=>document.getElementById(id);
-function key(w){return "w"+w}
-function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
-function fmt(ms){if(!isFinite(ms)||ms<0)return"00:00.0";let m=Math.floor(ms/60000),s=Math.floor(ms%60000/1000),t=Math.floor(ms%1000/100);return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}.${t}`}
-function mean(a){return a.length?a.reduce((x,y)=>x+y,0)/a.length:0}function sd(a){if(a.length<2)return 0;let m=mean(a);return Math.sqrt(a.reduce((s,x)=>s+(x-m)**2,0)/a.length)}function cv(a){let m=mean(a);return m?sd(a)/m*100:0}
-function cls(v){return v<=3?"good":v<=7?"warn":"bad"}function label(v){return v<=3?"zeer gelijkmatig":v<=7?"redelijk gelijkmatig":"wisselend tempo"}
-function name(id){return state.students.find(s=>s.id===id)?.name||""}
-
-function normalizeHeader(s){
-  return String(s||"").trim().toLowerCase()
-    .normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+const $=s=>document.querySelector(s),$$=s=>Array.from(document.querySelectorAll(s));
+const state={lanes:2,waves:4,students:[],timers:{},config:null};
+for(let i=1;i<=10;i++)$('#lanes').add(new Option(i,i,i===2,i===2));
+for(let i=1;i<=12;i++)$('#waves').add(new Option(i,i,i===4,i===4));
+function esc(x){return String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function slot(w,l){return state.students.find(s=>s.wave===w&&s.lane===l)}
+function ensure(){const old=new Map(state.students.map(s=>[s.wave+'-'+s.lane,s]));const a=[];for(let w=1;w<=state.waves;w++)for(let l=1;l<=state.lanes;l++)a.push(old.get(w+'-'+l)||{wave:w,lane:l,name:'',splits:[],time:null,strokes:'',extra:''});state.students=a}
+function capture(){ $$('.studentNaam').forEach(i=>{let s=slot(+i.dataset.w,+i.dataset.l);if(s)s.name=i.value.trim()})}
+function grid(){state.lanes=+$('#lanes').value;state.waves=+$('#waves').value;ensure();let h=`<div class="pool-vertical" style="--lanes:${state.lanes}"><div class="corner"></div>`;for(let l=1;l<=state.lanes;l++)h+=`<div class="lane-header">Baan ${l}</div>`;for(let w=1;w<=state.waves;w++){h+=`<div class="wave-side">Wave ${w}</div>`;for(let l=1;l<=state.lanes;l++){let s=slot(w,l);h+=`<input class="studentNaam setup-pool-cell" data-w="${w}" data-l="${l}" value="${esc(s.name)}" placeholder="Naam">`}}$('#studentGrid').innerHTML=h+'</div>'}
+function config(){return {activity:$('#activity').value,type:$('#stopMode').value,distance:+$('#distance').value||0,unit:$('#unit').value,laps:+$('#laps').value||0,duration:(+$('#duration').value||0)*60,strokes:$('#useStrokes').checked,splits:$('#useSplits').checked||$('#usePace').checked,pace:$('#usePace').checked,autoStop:$('#stopMode').value==='duration',extraMeters:$('#stopMode').value==='duration'&&$('#extraMeters').checked}}
+function active(){return state.students.filter(s=>s.name)}
+function show(id){$$('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab===id));$$('.panel').forEach(x=>x.classList.toggle('active',x.id===id));if(id==='results')results();if(id==='test')renderTest()}
+$$('.tab').forEach(b=>b.onclick=()=>show(b.dataset.tab));
+['lanes','waves'].forEach(id=>$('#'+id).onchange=()=>{capture();grid()});
+function updateMode(){let mode=$('#stopMode').value;$('#durationField').hidden=mode!=='duration';$('#lapsField').hidden=mode!=='distance';$('#extraMetersRow').hidden=mode!=='duration';updateMeasureCount()}
+$('#stopMode').onchange=updateMode;
+$('#activity').addEventListener('change',()=>{
+  const defaults={Zwemmen:'50',Lopen:'400',Fietsen:''};
+  $('#distance').value=defaults[$('#activity').value]??'';
+  $('#distance').placeholder=$('#activity').value==='Fietsen'?'Geen standaardafstand':'bv. '+$('#distance').value;
+});
+function updateMeasureCount(){let n=['useStrokes','useSplits','usePace'].filter(id=>$('#'+id).checked).length+(($('#stopMode').value==='duration'&&$('#extraMeters').checked)?1:0);$('#measurementCount').textContent=n?'('+n+')':''}
+$('#openMeasurements').onclick=()=>$('#measureDialog').showModal();
+$('#closeMeasurements').onclick=()=>$('#measureDialog').close();
+$('#saveMeasurements').onclick=()=>{$('#measureDialog').close();updateMeasureCount()};
+['useStrokes','useSplits','usePace','extraMeters'].forEach(id=>$('#'+id).addEventListener('change',updateMeasureCount));
+updateMode();
+$('#usePace').onchange=()=>{if($('#usePace').checked)$('#useSplits').checked=true};
+$('#useSplits').onchange=()=>{if(!$('#useSplits').checked)$('#usePace').checked=false};
+$('#studentGrid').onkeydown=e=>{if(e.key!=='Enter'||!e.target.classList.contains('studentNaam'))return;e.preventDefault();capture();let a=$$('.studentNaam'),i=a.indexOf(e.target);if(i<a.length-1){a[i+1].focus();a[i+1].select()}else e.target.blur()};
+$('#setupInfoBtn').onclick=()=>{let p=$('#setupInfo');p.hidden=!p.hidden;$('#setupInfoBtn').setAttribute('aria-expanded',String(!p.hidden))};
+$('#clearAll').onclick=()=>{if(!confirm('Alle leerlingen en testresultaten wissen?'))return;state.students.forEach(s=>{s.name='';s.splits=[];s.time=null;s.strokes='';s.extra='' });state.timers={};$$('.studentNaam').forEach(i=>i.value='');grid()};
+$('#goTest').onclick=()=>{capture();if(!active().length)return alert('Vul eerst minstens één naam in.');let c=config();if(c.type==='distance'&&(!Number.isInteger(c.laps)||c.laps<1))return alert('Vul een geldig aantal rondes in.');if(c.type==='duration'&&c.duration<=0)return alert('Vul een testduur in.');if(state.config&&JSON.stringify(c)!==JSON.stringify(state.config)&&Object.keys(state.timers).length){if(!confirm('Instellingen gewijzigd. De bestaande tijdmetingen wissen?'))return;state.timers={};state.students.forEach(s=>{s.splits=[];s.time=null;s.strokes='';s.extra=''})}state.config=c;renderTest();show('test')};
+function elapsed(w){let t=state.timers[w];return t?.start!=null?(t.end??performance.now())-t.start:0}
+function fmt(ms){if(ms==null)return '—';let s=ms/1000;return s>=60?`${Math.floor(s/60)}:${(s%60).toFixed(2).padStart(5,'0')}`:s.toFixed(2)+' s'}
+function countdown(w){
+  const c=state.config||config();
+  if(c.type!=='duration'||c.duration<=0)return '';
+  const remaining=Math.max(0,c.duration*1000-elapsed(w));
+  return fmt(remaining);
 }
-
-async function importExcel(file){
-  if(!file)return;
-  if(typeof XLSX==="undefined"){
-    alert("De Excel-module kon niet geladen worden. Controleer de internetverbinding en probeer opnieuw.");
-    return;
-  }
-  try{
-    const buffer=await file.arrayBuffer();
-    const wb=XLSX.read(buffer,{type:"array"});
-    const ws=wb.Sheets[wb.SheetNames[0]];
-    const rows=XLSX.utils.sheet_to_json(ws,{defval:""});
-    if(!rows.length){alert("Het Excelbestand bevat geen gegevens.");return}
-
-    const headers=Object.keys(rows[0]);
-    const lastNameKey=headers.find(h=>normalizeHeader(h)==="naam");
-    const firstNameKey=headers.find(h=>normalizeHeader(h)==="voornaam");
-
-    if(!lastNameKey||!firstNameKey){
-      alert('Ik vind de kolommen "Naam" en "Voornaam" niet in het eerste werkblad.');
-      return;
-    }
-
-    let added=0;
-    rows.forEach(r=>{
-      const last=String(r[lastNameKey]||"").trim();
-      const first=String(r[firstNameKey]||"").trim();
-      const full=[first,last].filter(Boolean).join(" ").trim();
-      if(!full)return;
-      if(state.students.some(s=>s.name.toLowerCase()===full.toLowerCase()))return;
-      state.students.push({id:crypto.randomUUID(),name:full});
-      added++;
-    });
-
-    $("importStatus").textContent=`${added} leerling${added===1?"":"en"} geïmporteerd.`;
-    renderSetup();
-  }catch(err){
-    console.error(err);
-    alert("Het Excelbestand kon niet worden ingelezen.");
-  }finally{
-    $("excelImport").value="";
-  }
+function waveActive(w){return active().filter(s=>s.wave===w)}
+function startWave(w){if(state.timers[w]?.start!=null)return;state.timers[w]={start:performance.now(),end:null};renderTest()}
+function record(w,l,kind){let s=slot(w,l),t=state.timers[w];if(!s?.name||!t||s.time!=null||t.end!=null)return;let ms=performance.now()-t.start;if(kind==='split'){s.splits.push(ms);if(state.config.type==='distance'&&state.config.laps&&s.splits.length>=state.config.laps)s.time=ms}else{s.time=ms;if(state.config.splits&&(!s.splits.length||ms>s.splits.at(-1)))s.splits.push(ms)}renderTest()}
+function undo(w,l){let s=slot(w,l);if(!s)return;if(s.time!=null){s.time=null;if(s.splits.length)s.splits.pop()}else s.splits.pop();renderTest()}
+function finishWave(w,forcedMs=null){let t=state.timers[w];if(!t||t.start==null||t.end!=null)return;let ms=forcedMs==null?performance.now()-t.start:forcedMs;t.end=t.start+ms;waveActive(w).forEach(s=>{if(s.time==null){s.time=ms;/* A partial final length is not a completed split. */}});renderTest()}
+let raf=0;
+function renderTest(){cancelAnimationFrame(raf);let c=state.config||config(),ss=active();if(!ss.length){$('#wavesArea').innerHTML='<div class="card">Geen leerlingen toegewezen.</div>';return}let h=`<div class="pool-wrap"><div class="pool-vertical" style="--lanes:${state.lanes};--waves:${state.waves}"><div class="corner"></div>`;for(let l=1;l<=state.lanes;l++)h+=`<div class="lane-header">Baan ${l}</div>`;
+for(let w=state.waves;w>=1;w--){let a=waveActive(w),t=state.timers[w],running=t?.start!=null,done=a.length&&a.every(s=>s.time!=null);h+=`<div class="wave-control"><button class="wave-start ${running?'running':''}" data-start="${w}" ${!a.length||running?'disabled':''}>${running?(done?'KLAAR':'BEZIG'):'START'}<div class="wave-word" data-clock="${w}">${running?fmt(elapsed(w)):'Wave '+w}</div>${running&&c.type==='duration'&&c.duration>0?`<div class="wave-countdown-label">RESTEREND</div><div class="wave-countdown" data-countdown="${w}">${countdown(w)}</div>`:''}</button></div>`;
+for(let l=1;l<=state.lanes;l++){
+let s=slot(w,l);
+if(!s?.name){h+='<div class="pool-cell empty"></div>';continue}
+let finished=s.time!=null,live=running&&!finished;
+if(live){
+  let metrics=splitMetrics(s),hasSplitButton=c.splits||c.type==='distance';
+  let isLast=c.type==='distance'&&s.splits.length+1>=c.laps;
+  let mainAction=isLast?'FINISH':hasSplitButton?'SPLIT':c.type==='free'?'FINISH':'METING LOOPT';
+  let mainAttr=hasSplitButton?`data-split="${w}-${l}"`:c.type==='free'?`data-finish="${w}-${l}"`:'';
+  let comparison=metrics.delta==null?'':`<span class="split-delta ${metrics.delta<0?'faster':metrics.delta>0?'slower':'equal'}">${metrics.delta>0?'+':metrics.delta<0?'−':''}${Math.abs(metrics.delta).toFixed(2)} s</span>`;
+  h+=`<div class="pool-cell live compact-live"><div class="cell-buttons"><button class="split-btn info-split" ${mainAttr} ${!mainAttr?'disabled':''}><span class="split-head"><span>${mainAction}</span><span class="split-count">${s.splits.length} rondes</span></span>${hasSplitButton?`<span class="split-data"><span class="split-last"><span class="split-caption">LAATSTE SPLIT</span><span class="split-value">${metrics.last??'—'}</span></span>${comparison}</span>`:''}</button><div class="cell-secondary"><div class="student-info"><span class="student-name" title="${esc(s.name)}">${esc(s.name)}</span></div><div class="secondary-actions">${s.splits.length&&hasSplitButton?`<button class="undo-btn" data-undo="${w}-${l}" title="Laatste split ongedaan maken" aria-label="Laatste split ongedaan maken">↶</button>`:''}${c.type==='free'&&c.splits?`<button class="finish-btn" data-finish="${w}-${l}">FINISH</button>`:''}</div></div></div></div>`;
+}else{
+  h+=`<div class="pool-cell ${finished?'done':'waiting'}"><div class="pc-name" title="${esc(s.name)}">${esc(s.name)}</div><div class="pc-time">${finished?fmt(s.time):'—'}</div>${c.splits?`<div class="result-mini">${s.splits.length} splits</div>`:''}${finished&&(c.splits||c.type==='distance')?`<div class="cell-secondary"><button class="undo-btn" data-undo="${w}-${l}" title="Laatste meting ongedaan maken" aria-label="Laatste meting ongedaan maken">↶</button></div>`:''}</div>`;
 }
-
-function randomAssignAll(){
-  if(!state.students.length){
-    alert("Voeg eerst leerlingen toe of importeer een Excelbestand.");
-    return;
-  }
-
-  const lanes=+$("lanes").value;
-  const requiredWaves=Math.ceil(state.students.length/lanes);
-
-  if(requiredWaves>4){
-    alert(`Met ${state.students.length} leerlingen en ${lanes} banen zijn ${requiredWaves} waves nodig. Deze versie ondersteunt maximaal 4 waves.`);
-    return;
-  }
-
-  $("waves").value=String(requiredWaves);
-  state.waves=requiredWaves;
-  state.waveState={};
-  state.data=[];
-  build();
-
-  const shuffled=[...state.students];
-  for(let i=shuffled.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];
-  }
-
-  let idx=0;
-  for(let w=1;w<=state.waves;w++){
-    for(let lane=0;lane<state.lanes;lane++){
-      const slot=state.data[lane][key(w)];
-      slot.studentId=idx<shuffled.length?shuffled[idx].id:null;
-      slot.splits=[];
-      idx++;
-    }
-  }
-
-  renderSetup();
-  renderLive();
-  $("importStatus").textContent=`Random verdeeld over ${state.lanes} banen en ${state.waves} wave${state.waves===1?"":"s"}.`;
+}}
+h+='</div></div><div class="compact-actions"><button class="btn secondary" id="toResults">Resultaten</button></div>';$('#wavesArea').innerHTML=h;
+$$('[data-start]').forEach(b=>b.onclick=()=>startWave(+b.dataset.start));$$('[data-end]').forEach(b=>b.onclick=()=>finishWave(+b.dataset.end));$$('[data-split]').forEach(b=>b.onclick=()=>{let [w,l]=b.dataset.split.split('-').map(Number);record(w,l,'split')});$$('[data-finish]').forEach(b=>b.onclick=()=>{let [w,l]=b.dataset.finish.split('-').map(Number);record(w,l,'finish')});$$('[data-undo]').forEach(b=>b.onclick=()=>{let [w,l]=b.dataset.undo.split('-').map(Number);undo(w,l)});$('#toResults').onclick=()=>show('results');tick()}
+function tick(){cancelAnimationFrame(raf);let run=()=>{let any=false;let toStop=[];for(let w=1;w<=state.waves;w++){let t=state.timers[w],el=document.querySelector(`[data-clock="${w}"]`);if(t?.start!=null&&t.end==null&&el){if(state.config?.type==='duration'&&state.config.duration>0&&elapsed(w)>=state.config.duration*1000){toStop.push(w);continue}el.textContent=fmt(elapsed(w));let cd=document.querySelector(`[data-countdown="${w}"]`);if(cd)cd.textContent=countdown(w);if(waveActive(w).some(s=>s.time==null))any=true}}if(toStop.length){toStop.forEach(w=>finishWave(w,state.config.duration*1000));return}if(any)raf=requestAnimationFrame(run)};run()}
+function durations(s){return s.splits.map((v,i)=>i?v-s.splits[i-1]:v)}
+function splitMetrics(s){
+ const a=durations(s),last=a.at(-1),prev=a.at(-2);
+ return {last:last==null?null:fmt(last),delta:prev==null?null:(last-prev)/1000};
 }
-
-function build(){
-  state.lanes=+$("lanes").value;state.waves=+$("waves").value;
-  while(state.data.length<state.lanes)state.data.push({});
-  state.data.length=state.lanes;
-  for(let i=0;i<state.lanes;i++)for(let w=1;w<=state.waves;w++)if(!state.data[i][key(w)])state.data[i][key(w)]={studentId:null,splits:[]};
-  for(let w=1;w<=state.waves;w++)if(!state.waveState[w])state.waveState[w]={running:false,start:null};
-  renderSetup();renderLive();
-}
-function options(cur){return `<option value="">— kies leerling —</option>`+state.students.map(s=>`<option value="${s.id}" ${s.id===cur?"selected":""}>${esc(s.name)}</option>`).join("")}
-function renderSetup(){
-  $("chips").innerHTML=state.students.map(s=>`<span class="chip">${esc(s.name)} <button data-rm="${s.id}">×</button></span>`).join("");
-  document.querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>{let id=b.dataset.rm;state.students=state.students.filter(s=>s.id!==id);state.data.forEach(l=>Object.values(l).forEach(x=>{if(x.studentId===id)x.studentId=null}));renderSetup()});
-  let a=$("assign");a.style.setProperty("--lanes",state.lanes);
-  a.innerHTML=state.data.map((l,i)=>`<div class="assigncard"><strong>Baan ${i+1}</strong>${Array.from({length:state.waves},(_,j)=>j+1).map(w=>`<div style="margin-top:5px"><label>Wave ${w}</label><select data-l="${i}" data-w="${w}" ${state.waveState[w].running?"disabled":""}>${options(l[key(w)].studentId)}</select></div>`).join("")}</div>`).join("");
-  a.querySelectorAll("select").forEach(s=>s.onchange=()=>{let x=state.data[+s.dataset.l][key(+s.dataset.w)];x.studentId=s.value||null;x.splits=[];renderLive()});
-}
-function elapsed(w){return state.waveState[w]?.running?performance.now()-state.waveState[w].start:0}
-function color(w){return ["c1","c2","c3","c4"][w-1]||"c1"}
-function renderLive(){
-  let wb=$("wavebar");wb.style.setProperty("--waves",state.waves);
-  wb.innerHTML=Array.from({length:state.waves},(_,j)=>j+1).map(w=>`<div class="wavebox"><div class="row"><strong>Wave ${w}</strong><span class="muted">${state.waveState[w].running?"Loopt":"Klaar"}</span></div><div class="clock" id="clock-${w}">${fmt(elapsed(w))}</div><button class="start ${color(w)}" data-start="${w}" ${state.waveState[w].running?"disabled":""}>START WAVE ${w}</button><button class="stopwave" data-stop="${w}" ${state.waveState[w].running?"":"disabled"}>STOP WAVE ${w}</button></div>`).join("");
-  wb.querySelectorAll("[data-start]").forEach(b=>b.onclick=()=>startWave(+b.dataset.start));
-  wb.querySelectorAll("[data-stop]").forEach(b=>b.onclick=()=>stopWave(+b.dataset.stop));
-  let g=$("timinggrid");g.style.setProperty("--lanes",state.lanes);g.style.setProperty("--waves",state.waves);
-  let cells=[];for(let w=1;w<=state.waves;w++)for(let i=0;i<state.lanes;i++){let x=state.data[i][key(w)],active=state.waveState[w].running&&x.studentId;
-    cells.push(`<div class="cell"><div><div class="name">${x.studentId?esc(name(x.studentId)):"Geen leerling"}</div><div class="meta">Wave ${w} · Baan ${i+1} · ${x.splits.length} splits</div><div class="mini" id="mini-${w}-${i}">${fmt(elapsed(w))}</div></div><button class="split ${color(w)}" data-s="${w}-${i}" ${active?"":"disabled"}>SPLIT</button><button class="undo" data-u="${w}-${i}" ${x.splits.length?"":"disabled"}>↶ laatste split</button></div>`)
-  }g.innerHTML=cells.join("");
-  g.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{let [w,i]=b.dataset.s.split("-").map(Number);let x=state.data[i][key(w)];x.splits.push(performance.now()-state.waveState[w].start);renderLive()});
-  g.querySelectorAll("[data-u]").forEach(b=>b.onclick=()=>{let [w,i]=b.dataset.u.split("-").map(Number);state.data[i][key(w)].splits.pop();renderLive()});
-}
-function startWave(w){if(!state.data.some(l=>l[key(w)].studentId)){alert(`Kies minstens één leerling voor Wave ${w}.`);return}state.data.forEach(l=>l[key(w)].splits=[]);state.waveState[w]={running:true,start:performance.now()};renderSetup();renderLive();tick()}
-function stopWave(w){
-  if(!state.waveState[w]||!state.waveState[w].running)return;
-  state.waveState[w].running=false;
-  if(!Object.values(state.waveState).some(x=>x.running)&&state.raf){cancelAnimationFrame(state.raf);state.raf=null}
-  renderSetup();renderLive();
-}
-function tick(){if(state.raf)return;function loop(){for(let w=1;w<=state.waves;w++){let e=elapsed(w),c=$(`clock-${w}`);if(c)c.textContent=fmt(e);for(let i=0;i<state.lanes;i++){let m=$(`mini-${w}-${i}`);if(m)m.textContent=fmt(e)}}if(Object.values(state.waveState).some(x=>x.running))state.raf=requestAnimationFrame(loop);else state.raf=null}state.raf=requestAnimationFrame(loop)}
-function durations(a){return a.map((v,i)=>i?v-a[i-1]:v)}
-function renderResults(){let cards=[];for(let w=1;w<=state.waves;w++)for(let i=0;i<state.lanes;i++){let x=state.data[i][key(w)];if(!x.studentId)continue;let d=durations(x.splits),m=mean(d),v=cv(d),lapDist=parseFloat($("distance").value)||0,totalDist=lapDist*d.length,distUnit=$("unit").value;cards.push(`<div class="card"><div class="cardhead"><strong>${esc(name(x.studentId))}</strong><div class="muted">Wave ${w} · Baan ${i+1} · Afgelegd: ${lapDist?totalDist+" "+distUnit:"—"}</div></div><div class="cardbody">${d.length?d.map((t,j)=>{let p=m?(t-m)/m*100:0;return `<div class="srow"><span>R${j+1}</span><strong>${fmt(t)}</strong><span class="${Math.abs(p)<=3?"good":Math.abs(p)<=7?"warn":"bad"}">${d.length>1?(p>0?"+":"")+p.toFixed(1)+"%":"—"}</span></div>`}).join(""):'<div class="muted">Nog geen splits.</div>'}${d.length>=2?`<div class="summary">Variatie: <strong class="${cls(v)}">${v.toFixed(1)}%</strong> · ${label(v)}</div>`:""}</div></div>`)}$("resultcards").innerHTML=cards.join("")||'<div class="panel"><div class="muted">Nog geen resultaten.</div></div>'}
-function exportCSV(){let rows=[["Wave","Leerling","Activiteit","Baan","Afstand","Ronde","Rondetijd_ms","Cumulatieve_tijd_ms","Variatie_pct"]],n=0;for(let w=1;w<=state.waves;w++)for(let i=0;i<state.lanes;i++){let x=state.data[i][key(w)];if(!x.studentId||!x.splits.length)continue;let d=durations(x.splits),v=cv(d),c=0;d.forEach((t,j)=>{c+=t;rows.push([w,name(x.studentId),$("activity").value,i+1,$("distance").value?$("distance").value+" "+$("unit").value:"",j+1,Math.round(t),Math.round(c),v.toFixed(2)]);n++})}if(!n){alert("Nog geen splits om te exporteren.");return}let csv=rows.map(r=>r.map(v=>`"${String(v).replaceAll('"','""')}"`).join(";")).join("\n"),blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="pacecoach.csv";a.click();URL.revokeObjectURL(url)}
-document.querySelectorAll(".tabbtn").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tabbtn,.tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");$(b.dataset.tab).classList.add("active");if(b.dataset.tab==="results")renderResults();if(b.dataset.tab==="live")renderLive()});
-$("add").onclick=()=>{let n=$("student").value.trim();if(!n)return;state.students.push({id:crypto.randomUUID(),name:n});$("student").value="";renderSetup()};
-$("student").onkeydown=e=>{if(e.key==="Enter")$("add").click()};$("excelImport").onchange=e=>importExcel(e.target.files[0]);$("randomAssign").onclick=randomAssignAll;$("lanes").onchange=build;$("waves").onchange=build;$("export").onclick=exportCSV;
-$("reset").onclick=()=>{if(!confirm("Alles wissen en een nieuwe sessie starten?"))return;if(state.raf)cancelAnimationFrame(state.raf);state.students=[];state.data=[];state.waveState={};$("lanes").value="4";$("waves").value="2";$("distance").value="";$("unit").value="m";$("activity").value="Zwemmen";build();document.querySelector('[data-tab="setup"]').click()};
-build();
-</script>
-</body>
-</html>
+function cv(a){if(a.length<2)return null;let m=a.reduce((x,y)=>x+y,0)/a.length;if(!m)return null;return Math.sqrt(a.reduce((x,y)=>x+(y-m)**2,0)/a.length)/m*100}
+function results(){let c=state.config||config(),ss=active();$('#completePill').textContent=ss.filter(s=>s.time!=null).length+'/'+ss.length+' klaar';if(!ss.length){$('#resultsArea').innerHTML='Geen resultaten.';return}let h='<table><thead><tr><th>Leerling</th><th>Wave</th><th>Baan</th><th>Tijd</th>';if(c.splits)h+='<th>Rondetijden</th>';if(c.pace)h+='<th>CV (%)</th>';if(c.strokes)h+='<th>Slagen</th><th>SWOLF</th>';if(c.extraMeters)h+='<th>Extra '+esc(c.unit)+'</th><th>Totale afstand</th>';h+='</tr></thead><tbody>';for(let s of ss){let d=durations(s),v=cv(d);h+=`<tr><td><strong>${esc(s.name)}</strong></td><td>${s.wave}</td><td>${s.lane}</td><td>${fmt(s.time)}</td>`;if(c.splits)h+=`<td>${d.map(fmt).join(' · ')||'—'}</td>`;if(c.pace)h+=`<td>${v==null?'—':v.toFixed(2)}</td>`;if(c.strokes)h+=`<td><input class="strokeInput" type="number" min="0" step="1" data-w="${s.wave}" data-l="${s.lane}" value="${esc(s.strokes)}" placeholder="—"></td><td class="score" id="score-${s.wave}-${s.lane}">${s.time!=null&&s.strokes!==''?(s.time/1000+Number(s.strokes)).toFixed(2):'—'}</td>`;if(c.extraMeters){let complete=s.splits.length;let total=c.distance?complete*c.distance+(Number(s.extra)||0):null;h+=`<td><input class="extraInput" type="number" min="0" step="any" data-w="${s.wave}" data-l="${s.lane}" value="${esc(s.extra??'')}" placeholder="0"></td><td id="distance-${s.wave}-${s.lane}">${total==null?'—':total+' '+esc(c.unit)}</td>`}h+='</tr>'}$('#resultsArea').innerHTML=h+'</tbody></table>';$$('.strokeInput').forEach(i=>{i.oninput=()=>{let s=slot(+i.dataset.w,+i.dataset.l);s.strokes=i.value;$('#score-'+s.wave+'-'+s.lane).textContent=s.time!=null&&i.value!==''?(s.time/1000+Number(i.value)).toFixed(2):'—'};i.onkeydown=e=>{if(e.key!=='Enter')return;e.preventDefault();let a=$$('.strokeInput'),j=a.indexOf(i);if(j<a.length-1){a[j+1].focus();a[j+1].select()}else i.blur()}})}
+$$('.extraInput').forEach(i=>i.oninput=()=>{let s=slot(+i.dataset.w,+i.dataset.l);s.extra=i.value;let c=state.config||config();$('#distance-'+s.wave+'-'+s.lane).textContent=c.distance?(s.splits.length*c.distance+(Number(i.value)||0))+' '+c.unit:'—'});
+$('#backTest').onclick=()=>show('test');
+$('#exportCsv').onclick=()=>{let c=state.config||config(),rows=[['Leerling','Wave','Baan','Activiteit','Testvorm','Afstand_per_ronde','Eenheid','Tijd_seconden','Slagen','SWOLF','CV_pct','Rondetijden_seconden','Volledige_rondes','Extra_afstand','Totale_afstand']];for(let s of active()){let d=durations(s),v=cv(d);rows.push([s.name,s.wave,s.lane,c.activity,c.type,c.distance,c.unit,s.time==null?'':(s.time/1000).toFixed(2),c.strokes?s.strokes:'',c.strokes&&s.time!=null&&s.strokes!==''?(s.time/1000+Number(s.strokes)).toFixed(2):'',c.pace&&v!=null?v.toFixed(2):'',c.splits?d.map(x=>(x/1000).toFixed(2)).join(' | '):'',c.extraMeters?s.splits.length:'',c.extraMeters?s.extra:'',c.extraMeters&&c.distance?s.splits.length*c.distance+(Number(s.extra)||0):''])}let csv='\\uFEFF'+rows.map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(';')).join('\\r\\n');let u=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=u;a.download='tijdregistratie.csv';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)};
+function importNames(names){capture();let clean=names.map(x=>String(x??'').trim()).filter(x=>x&&!/^(naam|name|student|voornaam)$/i.test(x));state.students.forEach(s=>{s.name='';s.splits=[];s.time=null;s.strokes='';s.extra='' });state.timers={};clean.slice(0,state.students.length).forEach((n,i)=>state.students[i].name=n);grid();$('#importStatus').textContent=clean.length+' namen ingelezen'+(clean.length>state.students.length?' (niet alle namen passen in het raster)':'')}
+$('#studentFile').onchange=async e=>{let f=e.target.files[0];if(!f)return;try{let names=[];if(f.name.toLowerCase().endsWith('.csv')){names=(await f.text()).split(/\\r?\\n/).map(r=>r.split(/[;,\\t]/)[0])}else{if(typeof XLSX==='undefined')throw Error('Excel-inlezer niet beschikbaar. Gebruik CSV of maak verbinding met internet.');let wb=XLSX.read(await f.arrayBuffer()),rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''});let header=(rows[0]||[]).map(x=>String(x).toLowerCase()),ln=header.findIndex(x=>x==='naam'),fn=header.findIndex(x=>x==='voornaam');if(ln>=0&&fn>=0){names=rows.slice(1).map(r=>[r[fn],r[ln]].filter(Boolean).join(' '))}else{let col=header.findIndex(x=>/naam|name|student/.test(x));names=rows.map(r=>r[col<0?0:col])}}importNames(names)}catch(err){alert('Klaslijst kon niet worden ingelezen: '+err.message)}e.target.value=''};
+grid();
+</script></body></html>
