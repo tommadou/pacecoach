@@ -176,6 +176,12 @@ body{background:#f7f7f7}.app{max-width:none;padding:0}.site-header{height:72px;b
 }
 #test .pool-vertical .pool-cell.done,
 #test .pool-vertical .pool-cell.waiting{padding:9px 11px}
+
+/* Sessie vergelijken: compacte verschillen zonder extra kaders. */
+#comparisonNote{margin:0 0 12px}
+.comparison{font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums}
+.comparison.improved{color:#187342}.comparison.declined{color:#b42318}.comparison.unchanged{color:#666}
+.muted{color:#888}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
@@ -196,7 +202,7 @@ body{background:#f7f7f7}.app{max-width:none;padding:0}.site-header{height:72px;b
       <div class="settings-second-row"><div class="field stop-field"><label for="stopMode">Wanneer stopt de test?</label><select id="stopMode"><option value="free">Vrij</option><option value="distance">Na bepaalde afstand</option><option value="duration">Na bepaalde tijd</option></select></div>
         <div class="field" id="lapsField" hidden><label>Aantal rondes</label><input id="laps" type="number" min="1" step="1" placeholder="bv. 4" /></div>
         <div class="field" id="durationField" hidden><label>Testduur (minuten)</label><input id="duration" type="number" min="0" step="any" placeholder="bv. 5" /></div>
-      <div class="setup-toolbar settings-actions"><button class="btn" id="goTest">Start test</button><button class="btn secondary" id="clearAll">Wissen</button><label class="btn secondary filebtn">Klaslijst importeren<input id="studentFile" type="file" accept=".xlsx,.xls,.csv" hidden></label><button class="btn secondary" id="openMeasurements" type="button">Extra <span id="measurementCount"></span></button><span class="hint" id="importStatus"></span></div>
+      <div class="setup-toolbar settings-actions"><button class="btn" id="goTest">Start test</button><button class="btn secondary" id="clearAll">Wissen</button><label class="btn secondary filebtn">Klaslijst importeren<input id="studentFile" type="file" accept=".xlsx,.xls,.csv" hidden></label><label class="btn secondary filebtn">Sessie hervatten<input id="resumeFile" type="file" accept=".csv,.xlsx" hidden></label><button class="btn secondary" id="openMeasurements" type="button">Extra <span id="measurementCount"></span></button><span class="hint" id="importStatus"></span></div>
       </div>
     </div>
     <div class="card">
@@ -214,15 +220,15 @@ body{background:#f7f7f7}.app{max-width:none;padding:0}.site-header{height:72px;b
   <section id="results" class="panel">
     <div class="card">
       <div class="section-head"><div><h2>Resultaten</h2><div class="hint">Vul eventueel het aantal slagen in. Gelijkmatigheid = variatiecoëfficiënt (CV) van de rondetijden.</div></div><span class="pill" id="completePill">0 klaar</span></div>
-      <div class="results" id="resultsArea"></div>
+      <div class="hint" id="comparisonNote" hidden></div><div class="results" id="resultsArea"></div>
     </div>
-    <div class="actions"><button class="btn" id="exportCsv">Exporteer CSV</button><button class="btn secondary" id="backTest">Terug naar test</button></div>
+    <div class="actions"><button class="btn" id="exportCsv">Exporteer Excel</button><button class="btn secondary" id="backTest">Terug naar test</button></div>
   </section>
   </main>
 </div>
 <script>
 const $=s=>document.querySelector(s),$$=s=>Array.from(document.querySelectorAll(s));
-const state={lanes:2,waves:4,students:[],timers:{},config:null};
+const state={lanes:2,waves:4,students:[],timers:{},config:null,previous:null,history:[]};
 for(let i=1;i<=10;i++)$('#lanes').add(new Option(i,i,i===2,i===2));
 for(let i=1;i<=12;i++)$('#waves').add(new Option(i,i,i===4,i===4));
 function esc(x){return String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -252,7 +258,7 @@ $('#usePace').onchange=()=>{if($('#usePace').checked)$('#useSplits').checked=tru
 $('#useSplits').onchange=()=>{if(!$('#useSplits').checked)$('#usePace').checked=false};
 $('#studentGrid').onkeydown=e=>{if(e.key!=='Enter'||!e.target.classList.contains('studentNaam'))return;e.preventDefault();capture();let a=$$('.studentNaam'),i=a.indexOf(e.target);if(i<a.length-1){a[i+1].focus();a[i+1].select()}else e.target.blur()};
 $('#setupInfoBtn').onclick=()=>{let p=$('#setupInfo');p.hidden=!p.hidden;$('#setupInfoBtn').setAttribute('aria-expanded',String(!p.hidden))};
-$('#clearAll').onclick=()=>{if(!confirm('Alle leerlingen en testresultaten wissen?'))return;state.students.forEach(s=>{s.name='';s.splits=[];s.time=null;s.strokes='';s.extra='' });state.timers={};$$('.studentNaam').forEach(i=>i.value='');grid()};
+$('#clearAll').onclick=()=>{if(!confirm('Alle leerlingen, vorige sessie en testresultaten wissen?'))return;state.previous=null;state.history=[];$('#comparisonNote').hidden=true;state.students.forEach(s=>{s.name='';s.splits=[];s.time=null;s.strokes='';s.extra='' });state.timers={};$$('.studentNaam').forEach(i=>i.value='');grid()};
 $('#goTest').onclick=()=>{capture();if(!active().length)return alert('Vul eerst minstens één naam in.');let c=config();if(c.type==='distance'&&(!Number.isInteger(c.laps)||c.laps<1))return alert('Vul een geldig aantal rondes in.');if(c.type==='duration'&&c.duration<=0)return alert('Vul een testduur in.');if(state.config&&JSON.stringify(c)!==JSON.stringify(state.config)&&Object.keys(state.timers).length){if(!confirm('Instellingen gewijzigd. De bestaande tijdmetingen wissen?'))return;state.timers={};state.students.forEach(s=>{s.splits=[];s.time=null;s.strokes='';s.extra=''})}state.config=c;renderTest();show('test')};
 function elapsed(w){let t=state.timers[w];return t?.start!=null?(t.end??performance.now())-t.start:0}
 function fmt(ms){if(ms==null)return '—';let s=ms/1000;return s>=60?`${Math.floor(s/60)}:${(s%60).toFixed(2).padStart(5,'0')}`:s.toFixed(2)+' s'}
@@ -294,11 +300,142 @@ function splitMetrics(s){
  return {last:last==null?null:fmt(last),delta:prev==null?null:(last-prev)/1000};
 }
 function cv(a){if(a.length<2)return null;let m=a.reduce((x,y)=>x+y,0)/a.length;if(!m)return null;return Math.sqrt(a.reduce((x,y)=>x+(y-m)**2,0)/a.length)/m*100}
-function results(){let c=state.config||config(),ss=active();$('#completePill').textContent=ss.filter(s=>s.time!=null).length+'/'+ss.length+' klaar';if(!ss.length){$('#resultsArea').innerHTML='Geen resultaten.';return}let h='<table><thead><tr><th>Leerling</th><th>Wave</th><th>Baan</th><th>Tijd</th>';if(c.splits)h+='<th>Rondetijden</th>';if(c.pace)h+='<th>CV (%)</th>';if(c.strokes)h+='<th>Slagen</th><th>SWOLF</th>';if(c.extraMeters)h+='<th>Extra '+esc(c.unit)+'</th><th>Totale afstand</th>';h+='</tr></thead><tbody>';for(let s of ss){let d=durations(s),v=cv(d);h+=`<tr><td><strong>${esc(s.name)}</strong></td><td>${s.wave}</td><td>${s.lane}</td><td>${fmt(s.time)}</td>`;if(c.splits)h+=`<td>${d.map(fmt).join(' · ')||'—'}</td>`;if(c.pace)h+=`<td>${v==null?'—':v.toFixed(2)}</td>`;if(c.strokes)h+=`<td><input class="strokeInput" type="number" min="0" step="1" data-w="${s.wave}" data-l="${s.lane}" value="${esc(s.strokes)}" placeholder="—"></td><td class="score" id="score-${s.wave}-${s.lane}">${s.time!=null&&s.strokes!==''?(s.time/1000+Number(s.strokes)).toFixed(2):'—'}</td>`;if(c.extraMeters){let complete=s.splits.length;let total=c.distance?complete*c.distance+(Number(s.extra)||0):null;h+=`<td><input class="extraInput" type="number" min="0" step="any" data-w="${s.wave}" data-l="${s.lane}" value="${esc(s.extra??'')}" placeholder="0"></td><td id="distance-${s.wave}-${s.lane}">${total==null?'—':total+' '+esc(c.unit)}</td>`}h+='</tr>'}$('#resultsArea').innerHTML=h+'</tbody></table>';$$('.strokeInput').forEach(i=>{i.oninput=()=>{let s=slot(+i.dataset.w,+i.dataset.l);s.strokes=i.value;$('#score-'+s.wave+'-'+s.lane).textContent=s.time!=null&&i.value!==''?(s.time/1000+Number(i.value)).toFixed(2):'—'};i.onkeydown=e=>{if(e.key!=='Enter')return;e.preventDefault();let a=$$('.strokeInput'),j=a.indexOf(i);if(j<a.length-1){a[j+1].focus();a[j+1].select()}else i.blur()}})}
-$$('.extraInput').forEach(i=>i.oninput=()=>{let s=slot(+i.dataset.w,+i.dataset.l);s.extra=i.value;let c=state.config||config();$('#distance-'+s.wave+'-'+s.lane).textContent=c.distance?(s.splits.length*c.distance+(Number(i.value)||0))+' '+c.unit:'—'});
+function comparison(s){
+ const old=state.previous?.bySlot?.get(s.wave+'-'+s.lane);
+ if(!old||normalName(old.name)!==normalName(s.name))return null;
+ return old;
+}
+function comparisonCell(current,previous,suffix=' s'){
+ if(current==null||previous==null||!Number.isFinite(current)||!Number.isFinite(previous))return '<span class="muted">—</span>';
+ let delta=current-previous;
+ const label=(delta>0?'+':delta<0?'−':'')+Math.abs(delta).toFixed(2)+suffix;
+ return `<span class="comparison ${delta<0?'improved':delta>0?'declined':'unchanged'}">${delta<0?'▼ ':delta>0?'▲ ':'= '}${label}</span>`;
+}
+function results(){
+ let c=state.config||config(),ss=active(),prior=!!state.previous;
+ $('#completePill').textContent=ss.filter(s=>s.time!=null).length+'/'+ss.length+' klaar';
+ $('#comparisonNote').hidden=!prior;
+ if(prior)$('#comparisonNote').textContent='Vergelijking met '+state.previous.filename+' · groen = lagere tijd of SWOLF. Vergelijk alleen tests met dezelfde afstand en omstandigheden.';
+ if(!ss.length){$('#resultsArea').innerHTML='Geen resultaten.';return}
+ let h='<table><thead><tr><th>Leerling</th><th>Wave</th><th>Baan</th><th>Tijd</th>';
+ if(prior)h+='<th>Vorige tijd</th><th>Verschil tijd</th>';
+ if(c.splits)h+='<th>Rondetijden</th>';
+ if(c.pace)h+='<th>CV (%)</th>';
+ if(c.strokes){h+='<th>Slagen</th><th>SWOLF</th>';if(prior)h+='<th>Vorige SWOLF</th><th>Verschil SWOLF</th>'}
+ if(c.extraMeters)h+='<th>Extra '+esc(c.unit)+'</th><th>Totale afstand</th>';
+ h+='</tr></thead><tbody>';
+ for(let s of ss){
+  let d=durations(s),v=cv(d),old=comparison(s),time=s.time==null?null:s.time/1000;
+  h+=`<tr><td><strong>${esc(s.name)}</strong></td><td>${s.wave}</td><td>${s.lane}</td><td>${fmt(s.time)}</td>`;
+  if(prior)h+=`<td>${old?.time!=null?old.time.toFixed(2)+' s':'—'}</td><td>${comparisonCell(time,old?.time)}</td>`;
+  if(c.splits)h+=`<td>${d.map(fmt).join(' · ')||'—'}</td>`;
+  if(c.pace)h+=`<td>${v==null?'—':v.toFixed(2)}</td>`;
+  if(c.strokes){
+   let swolf=time!=null&&s.strokes!==''?time+Number(s.strokes):null;
+   h+=`<td><input class="strokeInput" type="number" min="0" step="1" data-w="${s.wave}" data-l="${s.lane}" value="${esc(s.strokes)}" placeholder="—"></td><td class="score" id="score-${s.wave}-${s.lane}">${swolf!=null?swolf.toFixed(2):'—'}</td>`;
+   if(prior)h+=`<td>${old?.swolf!=null?old.swolf.toFixed(2):'—'}</td><td id="swolfDelta-${s.wave}-${s.lane}">${comparisonCell(swolf,old?.swolf,'')}</td>`;
+  }
+  if(c.extraMeters){let complete=s.splits.length,total=c.distance?complete*c.distance+(Number(s.extra)||0):null;h+=`<td><input class="extraInput" type="number" min="0" step="any" data-w="${s.wave}" data-l="${s.lane}" value="${esc(s.extra??'')}" placeholder="0"></td><td id="distance-${s.wave}-${s.lane}">${total==null?'—':total+' '+esc(c.unit)}</td>`}
+  h+='</tr>';
+ }
+ $('#resultsArea').innerHTML=h+'</tbody></table>';
+ $$('.strokeInput').forEach(i=>{
+  i.oninput=()=>{let s=slot(+i.dataset.w,+i.dataset.l);s.strokes=i.value;let swolf=s.time!=null&&i.value!==''?s.time/1000+Number(i.value):null;$('#score-'+s.wave+'-'+s.lane).textContent=swolf!=null?swolf.toFixed(2):'—';let delta=$('#swolfDelta-'+s.wave+'-'+s.lane);if(delta)delta.innerHTML=comparisonCell(swolf,comparison(s)?.swolf,'')};
+  i.onkeydown=e=>{if(e.key!=='Enter')return;e.preventDefault();let a=$$('.strokeInput'),j=a.indexOf(i);if(j<a.length-1){a[j+1].focus();a[j+1].select()}else i.blur()};
+ });
+ $$('.extraInput').forEach(i=>i.oninput=()=>{let s=slot(+i.dataset.w,+i.dataset.l);s.extra=i.value;let c=state.config||config();$('#distance-'+s.wave+'-'+s.lane).textContent=c.distance?(s.splits.length*c.distance+(Number(i.value)||0))+' '+c.unit:'—'});
+}
 $('#backTest').onclick=()=>show('test');
-$('#exportCsv').onclick=()=>{let c=state.config||config(),rows=[['Leerling','Wave','Baan','Activiteit','Testvorm','Afstand_per_ronde','Eenheid','Tijd_seconden','Slagen','SWOLF','CV_pct','Rondetijden_seconden','Volledige_rondes','Extra_afstand','Totale_afstand']];for(let s of active()){let d=durations(s),v=cv(d);rows.push([s.name,s.wave,s.lane,c.activity,c.type,c.distance,c.unit,s.time==null?'':(s.time/1000).toFixed(2),c.strokes?s.strokes:'',c.strokes&&s.time!=null&&s.strokes!==''?(s.time/1000+Number(s.strokes)).toFixed(2):'',c.pace&&v!=null?v.toFixed(2):'',c.splits?d.map(x=>(x/1000).toFixed(2)).join(' | '):'',c.extraMeters?s.splits.length:'',c.extraMeters?s.extra:'',c.extraMeters&&c.distance?s.splits.length*c.distance+(Number(s.extra)||0):''])}let csv='\\uFEFF'+rows.map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(';')).join('\\r\\n');let u=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=u;a.download='tijdregistratie.csv';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)};
-function importNames(names){capture();let clean=names.map(x=>String(x??'').trim()).filter(x=>x&&!/^(naam|name|student|voornaam)$/i.test(x));state.students.forEach(s=>{s.name='';s.splits=[];s.time=null;s.strokes='';s.extra='' });state.timers={};clean.slice(0,state.students.length).forEach((n,i)=>state.students[i].name=n);grid();$('#importStatus').textContent=clean.length+' namen ingelezen'+(clean.length>state.students.length?' (niet alle namen passen in het raster)':'')}
+// Export met een doorlopende sessiehistoriek. De nieuwste meting wordt pas bij export toegevoegd.
+function currentRecords(){
+ const c=state.config||config(),date=new Date().toISOString().slice(0,10),id='sessie-'+new Date().toISOString();
+ return active().map(s=>{const d=durations(s),v=cv(d),time=s.time==null?null:+(s.time/1000).toFixed(2),swolf=c.strokes&&time!=null&&s.strokes!==''?+(time+Number(s.strokes)).toFixed(2):null;
+ return {Sessie:id,Datum:date,Leerling:s.name,Wave:s.wave,Baan:s.lane,Activiteit:c.activity,Testvorm:c.type,Afstand_per_ronde:c.distance||null,Eenheid:c.unit,Tijd_seconden:time,Slagen:c.strokes&&s.strokes!==''?Number(s.strokes):null,SWOLF:swolf,CV_pct:c.pace&&v!=null?+v.toFixed(2):null,Rondetijden_seconden:c.splits?d.map(x=>(x/1000).toFixed(2)).join(' | '):'',Volledige_rondes:c.splits?s.splits.length:null,Extra_afstand:c.extraMeters&&s.extra!==''?Number(s.extra):null,Totale_afstand:c.extraMeters&&c.distance?s.splits.length*c.distance+(Number(s.extra)||0):null};});
+}
+const historyFields=['Sessie','Datum','Leerling','Wave','Baan','Activiteit','Testvorm','Afstand_per_ronde','Eenheid','Tijd_seconden','Slagen','SWOLF','CV_pct','Rondetijden_seconden','Volledige_rondes','Extra_afstand','Totale_afstand'];
+function recordNumber(x){if(x==null||String(x).trim()==='')return null;const n=Number(String(x).replace(',','.'));return Number.isFinite(n)?n:null}
+function normalizeRecord(r){const o={};for(const k of historyFields)o[k]=r[k]??null;for(const k of ['Wave','Baan','Afstand_per_ronde','Tijd_seconden','Slagen','SWOLF','CV_pct','Volledige_rondes','Extra_afstand','Totale_afstand'])o[k]=recordNumber(o[k]);return o}
+function historyKey(r){return normalName(r.Leerling)}
+function latestPerStudent(rows){const m=new Map();for(const r of rows){const k=historyKey(r);if(k)m.set(k,r)}return m}
+$('#exportCsv').onclick=()=>{
+ if(typeof XLSX==='undefined')return alert('Excel-export is niet beschikbaar. Controleer je internetverbinding.');
+ const current=currentRecords(),historical=state.history.slice(),all=[...historical,...current];
+ const sessions=[...new Set(all.map(r=>r.Sessie).filter(Boolean))];
+ const names=[...new Set(all.map(r=>r.Leerling).filter(Boolean))];
+ const summary=[['Leerling',...sessions.flatMap((id,i)=>['Sessie '+(i+1)+' · tijd (s)','Sessie '+(i+1)+' · SWOLF']), 'Verschil laatste twee tijden (s)','Verschil laatste twee SWOLF']];
+ for(const name of names){const records=all.filter(r=>normalName(r.Leerling)===normalName(name));const bySession=new Map(records.map(r=>[r.Sessie,r]));const timed=records.filter(r=>r.Tijd_seconden!=null),scored=records.filter(r=>r.SWOLF!=null);const prev=timed.at(-2),last=timed.at(-1),ps=scored.at(-2),ls=scored.at(-1);
+ summary.push([name,...sessions.flatMap(id=>{const r=bySession.get(id);return[r?.Tijd_seconden??null,r?.SWOLF??null]}),prev&&last?+(last.Tijd_seconden-prev.Tijd_seconden).toFixed(2):null,ps&&ls?+(ls.SWOLF-ps.SWOLF).toFixed(2):null]);}
+ const wb=XLSX.utils.book_new(),overview=XLSX.utils.aoa_to_sheet(summary),historiek=XLSX.utils.json_to_sheet(all,{header:historyFields});
+ overview['!cols']=[{wch:24},...Array(sessions.length*2).fill({wch:22}),{wch:29},{wch:30}];historiek['!cols']=historyFields.map(k=>({wch:Math.max(13,Math.min(27,k.length+3))}));
+ overview['!autofilter']={ref:overview['!ref']};historiek['!autofilter']={ref:historiek['!ref']};
+ XLSX.utils.book_append_sheet(wb,overview,'Overzicht');XLSX.utils.book_append_sheet(wb,historiek,'Historiek');
+ XLSX.writeFile(wb,'timer-resultaten-'+new Date().toISOString().slice(0,10)+'.xlsx');
+};
+function parseCSV(text){
+ text=text.replace(/^\uFEFF/,'');
+ const rows=[];let row=[],cell='',quoted=false;
+ const firstLine=text.split(/\r?\n/,1)[0];const sep=firstLine.includes(';')&&!firstLine.includes(',')?';':',';
+ for(let i=0;i<text.length;i++){
+  const ch=text[i];
+  if(ch==='"'){if(quoted&&text[i+1]==='"'){cell+='"';i++}else quoted=!quoted}
+  else if(ch===sep&&!quoted){row.push(cell);cell=''}
+  else if((ch==='\n'||ch==='\r')&&!quoted){if(ch==='\r'&&text[i+1]==='\n')i++;row.push(cell);if(row.some(x=>x.trim()))rows.push(row);row=[];cell=''}
+  else cell+=ch;
+ }
+ row.push(cell);if(row.some(x=>x.trim()))rows.push(row);
+ return rows;
+}
+function normalName(x){return String(x??'').trim().replace(/\s+/g,' ').toLocaleLowerCase('nl')}
+function resumeSession(text,filename){
+ const rows=parseCSV(text);
+ if(rows.length<2)throw Error('Het bestand bevat geen resultaten.');
+ const headers=rows[0].map(h=>h.trim().toLowerCase().replace(/[\s-]+/g,'_'));
+ const idx=(...names)=>headers.findIndex(h=>names.includes(h));
+ const nameCol=idx('student','leerling','naam','name'),waveCol=idx('wave'),laneCol=idx('lane','baan'),timeCol=idx('time_seconds','tijd_seconden'),swolfCol=idx('swolf'),strokesCol=idx('strokes','slagen');
+ if([nameCol,waveCol,laneCol,timeCol].some(x=>x<0))throw Error('Verwachte kolommen: Student/Leerling, Wave, Lane/Baan en Time_seconds/Tijd_seconden.');
+ const numeric=(x)=>{if(x==null||String(x).trim()==='')return null;let v=Number(String(x).trim().replace(',','.'));return Number.isFinite(v)?v:null};
+ const prior=[];const occupied=new Set();
+ for(const row of rows.slice(1)){
+  const name=String(row[nameCol]??'').trim(),wave=Number(row[waveCol]),lane=Number(row[laneCol]);
+  if(!name)continue;
+  if(!Number.isInteger(wave)||!Number.isInteger(lane)||wave<1||lane<1||wave>12||lane>10)throw Error('Ongeldige wave of baan bij '+name+'.');
+  const key=wave+'-'+lane;
+  if(occupied.has(key))throw Error('Dubbele bezetting in wave '+wave+', baan '+lane+'.');
+  occupied.add(key);
+  prior.push({name,wave,lane,time:numeric(row[timeCol]),swolf:swolfCol>=0?numeric(row[swolfCol]):null,strokes:strokesCol>=0?numeric(row[strokesCol]):null});
+ }
+ if(!prior.length)throw Error('Geen geldige leerlingen gevonden.');
+ const maxW=Math.max(...prior.map(s=>s.wave)),maxL=Math.max(...prior.map(s=>s.lane));
+ if(!confirm('Vorige sessie laden ('+prior.length+' leerlingen)? De huidige leerlingen en metingen worden vervangen.'))return;
+ cancelAnimationFrame(raf);state.timers={};state.config=null;
+ $('#waves').value=String(maxW);$('#lanes').value=String(maxL);
+ state.waves=maxW;state.lanes=maxL;state.students=[];ensure();
+ for(const r of prior){const s=slot(r.wave,r.lane);s.name=r.name;s.time=null;s.splits=[];s.strokes='';s.extra=''}
+ state.previous={filename,bySlot:new Map(prior.map(s=>[s.wave+'-'+s.lane,s]))};
+ if(!state.history.length)state.history=prior.map(r=>normalizeRecord({Sessie:'vorige sessie',Datum:'',Leerling:r.name,Wave:r.wave,Baan:r.lane,Tijd_seconden:r.time,SWOLF:r.swolf,Slagen:r.strokes}));
+ // De oude SWOLF-export bevat slagen; toon de overeenkomstige resultaten automatisch.
+ if(prior.some(s=>s.strokes!=null||s.swolf!=null))$('#useStrokes').checked=true;
+ updateMeasureCount();grid();show('setup');
+ $('#importStatus').textContent=prior.length+' leerlingen geladen uit vorige sessie';
+}
+$('#resumeFile').onchange=async e=>{
+ const f=e.target.files[0];if(!f)return;
+ try{
+  if(f.name.toLowerCase().endsWith('.xlsx')){
+   if(typeof XLSX==='undefined')throw Error('Excel-inlezer niet beschikbaar.');
+   const wb=XLSX.read(await f.arrayBuffer(),{type:'array'}),sheet=wb.Sheets['Historiek'];
+   if(!sheet)throw Error('Tabblad Historiek ontbreekt. Gebruik een Timer-export of een oudere CSV.');
+   const rows=XLSX.utils.sheet_to_json(sheet,{defval:null}).map(normalizeRecord).filter(r=>r.Leerling);
+   if(!rows.length)throw Error('Geen eerdere resultaten gevonden.');
+   const latest=latestPerStudent(rows),lastRows=[...latest.values()];
+   const csv=[['Leerling','Wave','Baan','Tijd_seconden','SWOLF','Slagen'],...lastRows.map(r=>[r.Leerling,r.Wave,r.Baan,r.Tijd_seconden??'',r.SWOLF??'',r.Slagen??''])].map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(';')).join('\r\n');
+   resumeSession(csv,f.name);
+   if(state.previous){state.history=rows;$('#importStatus').textContent=lastRows.length+' leerlingen en '+new Set(rows.map(r=>r.Sessie)).size+' sessies geladen';}
+  }else{state.history=[];resumeSession(await f.text(),f.name)}
+ }catch(err){alert('Sessie kon niet worden geladen: '+err.message)}
+ e.target.value='';
+};
+function importNames(names){state.previous=null;state.history=[];capture();let clean=names.map(x=>String(x??'').trim()).filter(x=>x&&!/^(naam|name|student|voornaam)$/i.test(x));state.students.forEach(s=>{s.name='';s.splits=[];s.time=null;s.strokes='';s.extra='' });state.timers={};clean.slice(0,state.students.length).forEach((n,i)=>state.students[i].name=n);grid();$('#importStatus').textContent=clean.length+' namen ingelezen'+(clean.length>state.students.length?' (niet alle namen passen in het raster)':'')}
 $('#studentFile').onchange=async e=>{let f=e.target.files[0];if(!f)return;try{let names=[];if(f.name.toLowerCase().endsWith('.csv')){names=(await f.text()).split(/\\r?\\n/).map(r=>r.split(/[;,\\t]/)[0])}else{if(typeof XLSX==='undefined')throw Error('Excel-inlezer niet beschikbaar. Gebruik CSV of maak verbinding met internet.');let wb=XLSX.read(await f.arrayBuffer()),rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''});let header=(rows[0]||[]).map(x=>String(x).toLowerCase()),ln=header.findIndex(x=>x==='naam'),fn=header.findIndex(x=>x==='voornaam');if(ln>=0&&fn>=0){names=rows.slice(1).map(r=>[r[fn],r[ln]].filter(Boolean).join(' '))}else{let col=header.findIndex(x=>/naam|name|student/.test(x));names=rows.map(r=>r[col<0?0:col])}}importNames(names)}catch(err){alert('Klaslijst kon niet worden ingelezen: '+err.message)}e.target.value=''};
 grid();
 </script></body></html>
