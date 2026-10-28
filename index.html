@@ -182,6 +182,15 @@ body{background:#f7f7f7}.app{max-width:none;padding:0}.site-header{height:72px;b
 .comparison{font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums}
 .comparison.improved{color:#187342}.comparison.declined{color:#b42318}.comparison.unchanged{color:#666}
 .muted{color:#888}
+
+/* Individuele timing: compact op tablet en laptop */
+.timing-choice{margin-bottom:16px}.timing-label{display:block;font-size:12px;font-weight:800;color:var(--muted);letter-spacing:.04em;margin-bottom:7px}.timing-switch{display:inline-flex;border:1px solid var(--line);border-radius:11px;padding:3px;background:#f1f1ef;gap:3px}.timing-option{border:0;background:transparent;border-radius:8px;padding:10px 18px;font-weight:800;color:#666;cursor:pointer}.timing-option.selected{background:#111;color:#fff}.individual-toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:9px;margin-bottom:12px}.individual-list{display:flex;flex-direction:column;gap:3px}.individual-row{display:grid;grid-template-columns:30px minmax(90px,1fr) 90px 112px;align-items:center;gap:8px;padding:3px 5px;border-bottom:1px solid #ededed;min-height:46px}.individual-row.absent{background:#f4f4f2;color:#888}.individual-row .student-name{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.individual-row .i-clock{text-align:right;font-size:14px;font-weight:850;font-variant-numeric:tabular-nums}.individual-row .i-action{min-height:40px;padding:7px 10px;border:1px solid #111;border-radius:9px;background:#111;color:#fff;font-weight:850;cursor:pointer}.individual-row .i-action.finish{background:#fff;color:#111}.individual-row .i-action.done{background:var(--ok);color:#174329;border-color:#87d09b}.individual-row .i-action:disabled{opacity:.55;cursor:default}.individual-row .i-index{color:#888;font-size:12px;font-weight:700}.individual-row .i-setup-name{padding:7px 9px;font-size:14px;min-width:0}.individual-row .i-controls{display:flex;gap:4px;justify-content:flex-end;align-items:center}.i-small{border:1px solid #d5d5d5;background:#fff;border-radius:7px;min-width:35px;min-height:37px;padding:5px;cursor:pointer;font-weight:800}.i-small.absent-btn{min-width:75px;font-size:11px}.individual-row.setup-row{grid-template-columns:30px minmax(100px,1fr) minmax(150px,auto)}.individual-row .i-controls .i-small:disabled{opacity:.25}.i-summary{font-size:13px;color:#666}.individual-card{padding:12px 18px}.i-test-title{font-weight:850;font-size:18px}.i-split{font-size:11px;color:#777}.i-split-action{min-width:54px}.individual-row.with-splits{grid-template-columns:30px minmax(90px,1fr) 90px 58px 105px}@media(max-width:600px){.individual-card{padding:10px}.individual-row{grid-template-columns:22px minmax(70px,1fr) 72px 84px;gap:4px}.individual-row.with-splits{grid-template-columns:22px minmax(70px,1fr) 70px 45px 76px}.individual-row .student-name{font-size:12px}.individual-row .i-action{padding:5px 3px;font-size:12px}.individual-row .i-clock{font-size:12px}.individual-row.setup-row{grid-template-columns:20px minmax(80px,1fr) auto}.i-small{min-width:29px;padding:3px}.i-small.absent-btn{min-width:62px}}
+/* Compacte moduskeuze naast de sectietitel */
+.timing-header{align-items:center;flex-wrap:wrap;row-gap:8px;margin-bottom:15px}
+.timing-header .timing-choice{margin:0}
+.timing-header .timing-switch{padding:2px;border-radius:9px;gap:2px}
+.timing-header .timing-option{padding:7px 12px;font-size:13px;border-radius:7px;min-height:34px}
+@media(max-width:520px){.timing-header{align-items:flex-start}.timing-header .timing-option{padding:7px 9px;font-size:12px}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
@@ -191,10 +200,10 @@ body{background:#f7f7f7}.app{max-width:none;padding:0}.site-header{height:72px;b
   <main class="page-content">
   <section id="setup" class="panel active">
     <div class="card">
-      <div class="section-head"><h2>Testinstellingen</h2></div>
-      <div class="grid settings-grid">
-        <div class="field"><label>Aantal banen</label><select id="lanes"></select></div>
-        <div class="field"><label>Aantal waves</label><select id="waves"></select></div>
+      <div class="section-head timing-header"><h2>Testinstellingen</h2><div class="timing-choice" role="group" aria-label="Manier van timen"><div class="timing-switch"><button type="button" class="timing-option selected" data-timing="wave">Wave timing</button><button type="button" class="timing-option" data-timing="individual">Individuele timing</button></div></div></div>
+       <div class="grid settings-grid">
+        <div class="field wave-setting"><label>Aantal banen</label><select id="lanes"></select></div>
+        <div class="field wave-setting"><label>Aantal waves</label><select id="waves"></select></div>
         <div class="field"><label>Activiteit</label><select id="activity"><option>Zwemmen</option><option>Lopen</option><option>Fietsen</option></select></div>
         <div class="field"><label>Afstand per ronde</label><input id="distance" type="number" min="0" step="any" value="50" placeholder="bv. 50" /></div>
         <div class="field"><label>Eenheid</label><select id="unit"><option>m</option><option>km</option></select></div>
@@ -208,13 +217,13 @@ body{background:#f7f7f7}.app{max-width:none;padding:0}.site-header{height:72px;b
     <div class="card">
       <div class="section-head"><h2>Leerlingen</h2><button class="info-toggle" id="setupInfoBtn" type="button" aria-expanded="false" aria-controls="setupInfo">Meer info <span aria-hidden="true">▾</span></button></div><div class="hint setup-info" id="setupInfo" hidden>Vul de namen in of importeer een klaslijst (Excel of CSV). Elke baan is een kolom. Wave 1 start eerst; de volgende waves staan eronder. Met Enter ga je naar de volgende leerling.</div>
       
-      <div class="pool-wrap"><div id="studentGrid" class="pool"></div></div>
+      <div class="pool-wrap" id="waveSetupWrap"><div id="studentGrid" class="pool"></div></div><div id="individualSetup" hidden></div>
     </div>
   </section>
 
   <dialog id="measureDialog" class="measure-dialog" aria-labelledby="measureTitle"><div class="measure-dialog-head"><h2 id="measureTitle">Extra metingen</h2><button type="button" id="closeMeasurements" class="close-measure" aria-label="Sluiten">×</button></div><p class="hint">Kies welke gegevens je naast de tijd wilt registreren.</p><div class="modal-checks"><label><input id="useStrokes" type="checkbox"> Slagen / SWOLF</label><label><input id="useSplits" type="checkbox"> Splits</label><label><input id="usePace" type="checkbox"> Gelijkmatigheid (CV)</label><label id="extraMetersRow" hidden><input id="extraMeters" type="checkbox"> Extra afstand registreren</label></div><button type="button" id="saveMeasurements" class="btn">Klaar</button></dialog>
   <section id="test" class="panel">
-    <div id="wavesArea"></div>
+    <div id="wavesArea"></div><div id="individualTest" hidden></div>
   </section>
 
   <section id="results" class="panel">
@@ -228,16 +237,16 @@ body{background:#f7f7f7}.app{max-width:none;padding:0}.site-header{height:72px;b
 </div>
 <script>
 const $=s=>document.querySelector(s),$$=s=>Array.from(document.querySelectorAll(s));
-const state={lanes:2,waves:4,students:[],timers:{},config:null,previous:null,history:[]};
+const state={lanes:2,waves:4,students:[],timers:{},config:null,previous:null,history:[],timing:"wave",individual:[],individualTimers:{}};
 for(let i=1;i<=10;i++)$('#lanes').add(new Option(i,i,i===2,i===2));
 for(let i=1;i<=12;i++)$('#waves').add(new Option(i,i,i===4,i===4));
 function esc(x){return String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function slot(w,l){return state.students.find(s=>s.wave===w&&s.lane===l)}
+function slot(w,l){return state.timing==='individual'?state.individual.find(s=>s.id===l):state.students.find(s=>s.wave===w&&s.lane===l)}
 function ensure(){const old=new Map(state.students.map(s=>[s.wave+'-'+s.lane,s]));const a=[];for(let w=1;w<=state.waves;w++)for(let l=1;l<=state.lanes;l++)a.push(old.get(w+'-'+l)||{wave:w,lane:l,name:'',splits:[],time:null,strokes:'',extra:''});state.students=a}
 function capture(){ $$('.studentNaam').forEach(i=>{let s=slot(+i.dataset.w,+i.dataset.l);if(s)s.name=i.value.trim()})}
 function grid(){state.lanes=+$('#lanes').value;state.waves=+$('#waves').value;ensure();let h=`<div class="pool-vertical" style="--lanes:${state.lanes}"><div class="corner"></div>`;for(let l=1;l<=state.lanes;l++)h+=`<div class="lane-header">Baan ${l}</div>`;for(let w=1;w<=state.waves;w++){h+=`<div class="wave-side">Wave ${w}</div>`;for(let l=1;l<=state.lanes;l++){let s=slot(w,l);h+=`<input class="studentNaam setup-pool-cell" data-w="${w}" data-l="${l}" value="${esc(s.name)}" placeholder="Naam">`}}$('#studentGrid').innerHTML=h+'</div>'}
 function config(){return {activity:$('#activity').value,type:$('#stopMode').value,distance:+$('#distance').value||0,unit:$('#unit').value,laps:+$('#laps').value||0,duration:(+$('#duration').value||0)*60,strokes:$('#useStrokes').checked,splits:$('#useSplits').checked||$('#usePace').checked,pace:$('#usePace').checked,autoStop:$('#stopMode').value==='duration',extraMeters:$('#stopMode').value==='duration'&&$('#extraMeters').checked}}
-function active(){return state.students.filter(s=>s.name)}
+function active(){return state.timing==="individual"?state.individual.filter(s=>s.name):state.students.filter(s=>s.name)}
 function show(id){$$('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab===id));$$('.panel').forEach(x=>x.classList.toggle('active',x.id===id));if(id==='results')results();if(id==='test')renderTest()}
 $$('.tab').forEach(b=>b.onclick=()=>show(b.dataset.tab));
 ['lanes','waves'].forEach(id=>$('#'+id).onchange=()=>{capture();grid()});
@@ -258,8 +267,8 @@ $('#usePace').onchange=()=>{if($('#usePace').checked)$('#useSplits').checked=tru
 $('#useSplits').onchange=()=>{if(!$('#useSplits').checked)$('#usePace').checked=false};
 $('#studentGrid').onkeydown=e=>{if(e.key!=='Enter'||!e.target.classList.contains('studentNaam'))return;e.preventDefault();capture();let a=$$('.studentNaam'),i=a.indexOf(e.target);if(i<a.length-1){a[i+1].focus();a[i+1].select()}else e.target.blur()};
 $('#setupInfoBtn').onclick=()=>{let p=$('#setupInfo');p.hidden=!p.hidden;$('#setupInfoBtn').setAttribute('aria-expanded',String(!p.hidden))};
-$('#clearAll').onclick=()=>{if(!confirm('Alle leerlingen, vorige sessie en testresultaten wissen?'))return;state.previous=null;state.history=[];$('#comparisonNote').hidden=true;state.students.forEach(s=>{s.name='';s.splits=[];s.time=null;s.strokes='';s.extra='' });state.timers={};$$('.studentNaam').forEach(i=>i.value='');grid()};
-$('#goTest').onclick=()=>{capture();if(!active().length)return alert('Vul eerst minstens één naam in.');let c=config();if(c.type==='distance'&&(!Number.isInteger(c.laps)||c.laps<1))return alert('Vul een geldig aantal rondes in.');if(c.type==='duration'&&c.duration<=0)return alert('Vul een testduur in.');if(state.config&&JSON.stringify(c)!==JSON.stringify(state.config)&&Object.keys(state.timers).length){if(!confirm('Instellingen gewijzigd. De bestaande tijdmetingen wissen?'))return;state.timers={};state.students.forEach(s=>{s.splits=[];s.time=null;s.strokes='';s.extra=''})}state.config=c;renderTest();show('test')};
+$('#clearAll').onclick=()=>{if(!confirm('Alle leerlingen, vorige sessie en testresultaten wissen?'))return;state.previous=null;state.history=[];$('#comparisonNote').hidden=true;state.students.forEach(s=>{s.name='';s.splits=[];s.time=null;s.strokes='';s.extra='' });state.timers={};state.individual=[];state.individualTimers={};$$('.studentNaam').forEach(i=>i.value='');grid();renderIndividualSetup()};
+$('#goTest').onclick=()=>{if(state.timing==='wave')capture();if(!active().length)return alert('Vul eerst minstens één naam in.');let c=config();if(c.type==='distance'&&(!Number.isInteger(c.laps)||c.laps<1))return alert('Vul een geldig aantal rondes in.');if(c.type==='duration'&&c.duration<=0)return alert('Vul een testduur in.');if(state.config&&JSON.stringify(c)!==JSON.stringify(state.config)&&(Object.keys(state.timers).length||Object.keys(state.individualTimers).length)){if(!confirm('Instellingen gewijzigd. De bestaande tijdmetingen wissen?'))return;state.timers={};state.individualTimers={};state.students.forEach(s=>{s.splits=[];s.time=null;s.strokes='';s.extra=''});state.individual.forEach(s=>{s.splits=[];s.time=null;s.strokes='';s.extra='';s.started=false})}state.config=c;renderTest();show('test')};
 function elapsed(w){let t=state.timers[w];return t?.start!=null?(t.end??performance.now())-t.start:0}
 function fmt(ms){if(ms==null)return '—';let s=ms/1000;return s>=60?`${Math.floor(s/60)}:${(s%60).toFixed(2).padStart(5,'0')}`:s.toFixed(2)+' s'}
 function countdown(w){
@@ -274,7 +283,7 @@ function record(w,l,kind){let s=slot(w,l),t=state.timers[w];if(!s?.name||!t||s.t
 function undo(w,l){let s=slot(w,l);if(!s)return;if(s.time!=null){s.time=null;if(s.splits.length)s.splits.pop()}else s.splits.pop();renderTest()}
 function finishWave(w,forcedMs=null){let t=state.timers[w];if(!t||t.start==null||t.end!=null)return;let ms=forcedMs==null?performance.now()-t.start:forcedMs;t.end=t.start+ms;waveActive(w).forEach(s=>{if(s.time==null){s.time=ms;/* A partial final length is not a completed split. */}});renderTest()}
 let raf=0;
-function renderTest(){cancelAnimationFrame(raf);let c=state.config||config(),ss=active();if(!ss.length){$('#wavesArea').innerHTML='<div class="card">Geen leerlingen toegewezen.</div>';return}let h=`<div class="pool-wrap"><div class="pool-vertical" style="--lanes:${state.lanes};--waves:${state.waves}"><div class="corner"></div>`;for(let l=1;l<=state.lanes;l++)h+=`<div class="lane-header">Baan ${l}</div>`;
+function renderTest(){if(state.timing==='individual'){renderIndividualTest();return}$('#wavesArea').hidden=false;$('#individualTest').hidden=true;cancelAnimationFrame(raf);let c=state.config||config(),ss=active();if(!ss.length){$('#wavesArea').innerHTML='<div class="card">Geen leerlingen toegewezen.</div>';return}let h=`<div class="pool-wrap"><div class="pool-vertical" style="--lanes:${state.lanes};--waves:${state.waves}"><div class="corner"></div>`;for(let l=1;l<=state.lanes;l++)h+=`<div class="lane-header">Baan ${l}</div>`;
 for(let w=state.waves;w>=1;w--){let a=waveActive(w),t=state.timers[w],running=t?.start!=null,done=a.length&&a.every(s=>s.time!=null);h+=`<div class="wave-control"><button class="wave-start ${running?'running':''}" data-start="${w}" ${!a.length||running?'disabled':''}>${running?(done?'KLAAR':'BEZIG'):'START'}<div class="wave-word" data-clock="${w}">${running?fmt(elapsed(w)):'Wave '+w}</div>${running&&c.type==='duration'&&c.duration>0?`<div class="wave-countdown-label">RESTEREND</div><div class="wave-countdown" data-countdown="${w}">${countdown(w)}</div>`:''}</button></div>`;
 for(let l=1;l<=state.lanes;l++){
 let s=slot(w,l);
@@ -301,7 +310,7 @@ function splitMetrics(s){
 }
 function cv(a){if(a.length<2)return null;let m=a.reduce((x,y)=>x+y,0)/a.length;if(!m)return null;return Math.sqrt(a.reduce((x,y)=>x+(y-m)**2,0)/a.length)/m*100}
 function comparison(s){
- const old=state.previous?.bySlot?.get(s.wave+'-'+s.lane);
+ const old=state.timing==='individual'?state.previous?.byName?.get(normalName(s.name)):state.previous?.bySlot?.get(s.wave+'-'+s.lane);
  if(!old||normalName(old.name)!==normalName(s.name))return null;
  return old;
 }
@@ -317,7 +326,7 @@ function results(){
  $('#comparisonNote').hidden=!prior;
  if(prior)$('#comparisonNote').textContent='Vergelijking met '+state.previous.filename+' · groen = lagere tijd of SWOLF. Vergelijk alleen tests met dezelfde afstand en omstandigheden.';
  if(!ss.length){$('#resultsArea').innerHTML='Geen resultaten.';return}
- let h='<table><thead><tr><th>Leerling</th><th>Wave</th><th>Baan</th><th>Tijd</th>';
+ let h='<table><thead><tr><th>Leerling</th><th>Status</th><th>Wave</th><th>Baan</th><th>Tijd</th>';
  if(prior)h+='<th>Vorige tijd</th><th>Verschil tijd</th>';
  if(c.splits)h+='<th>Rondetijden</th>';
  if(c.pace)h+='<th>CV (%)</th>';
@@ -326,7 +335,7 @@ function results(){
  h+='</tr></thead><tbody>';
  for(let s of ss){
   let d=durations(s),v=cv(d),old=comparison(s),time=s.time==null?null:s.time/1000;
-  h+=`<tr><td><strong>${esc(s.name)}</strong></td><td>${s.wave}</td><td>${s.lane}</td><td>${fmt(s.time)}</td>`;
+  h+=`<tr><td><strong>${esc(s.name)}</strong></td><td>${s.absent?'Afwezig':s.time!=null?'Voltooid':(state.timing==='wave'&&state.timers[s.wave]?.start!=null||s.started)?'Bezig':'Niet gestart'}</td><td>${state.timing==='individual'?'—':s.wave}</td><td>${state.timing==='individual'?'—':s.lane}</td><td>${fmt(s.time)}</td>`;
   if(prior)h+=`<td>${old?.time!=null?old.time.toFixed(2)+' s':'—'}</td><td>${comparisonCell(time,old?.time)}</td>`;
   if(c.splits)h+=`<td>${d.map(fmt).join(' · ')||'—'}</td>`;
   if(c.pace)h+=`<td>${v==null?'—':v.toFixed(2)}</td>`;
@@ -350,23 +359,23 @@ $('#backTest').onclick=()=>show('test');
 function currentRecords(){
  const c=state.config||config(),date=new Date().toISOString().slice(0,10),id='sessie-'+new Date().toISOString();
  return active().map(s=>{const d=durations(s),v=cv(d),time=s.time==null?null:+(s.time/1000).toFixed(2),swolf=c.strokes&&time!=null&&s.strokes!==''?+(time+Number(s.strokes)).toFixed(2):null;
- return {Sessie:id,Datum:date,Leerling:s.name,Wave:s.wave,Baan:s.lane,Activiteit:c.activity,Testvorm:c.type,Afstand_per_ronde:c.distance||null,Eenheid:c.unit,Tijd_seconden:time,Slagen:c.strokes&&s.strokes!==''?Number(s.strokes):null,SWOLF:swolf,CV_pct:c.pace&&v!=null?+v.toFixed(2):null,Rondetijden_seconden:c.splits?d.map(x=>(x/1000).toFixed(2)).join(' | '):'',Volledige_rondes:c.splits?s.splits.length:null,Extra_afstand:c.extraMeters&&s.extra!==''?Number(s.extra):null,Totale_afstand:c.extraMeters&&c.distance?s.splits.length*c.distance+(Number(s.extra)||0):null};});
+ return {Sessie:id,Datum:date,Leerling:s.name,Status:s.absent?'Afwezig':s.time!=null?'Voltooid':(state.timing==='wave'&&state.timers[s.wave]?.start!=null||s.started)?'Bezig':'Niet gestart',Volgorde:state.timing==='individual'?state.individual.indexOf(s)+1:null,Timing:state.timing==='individual'?'Individueel':'Wave',Wave:state.timing==='individual'?null:s.wave,Baan:state.timing==='individual'?null:s.lane,Activiteit:c.activity,Testvorm:c.type,Afstand_per_ronde:c.distance||null,Eenheid:c.unit,Tijd_seconden:time,Slagen:c.strokes&&s.strokes!==''?Number(s.strokes):null,SWOLF:swolf,CV_pct:c.pace&&v!=null?+v.toFixed(2):null,Rondetijden_seconden:c.splits?d.map(x=>(x/1000).toFixed(2)).join(' | '):'',Volledige_rondes:c.splits?s.splits.length:null,Extra_afstand:c.extraMeters&&s.extra!==''?Number(s.extra):null,Totale_afstand:c.extraMeters&&c.distance?s.splits.length*c.distance+(Number(s.extra)||0):null};});
 }
-const historyFields=['Sessie','Datum','Leerling','Wave','Baan','Activiteit','Testvorm','Afstand_per_ronde','Eenheid','Tijd_seconden','Slagen','SWOLF','CV_pct','Rondetijden_seconden','Volledige_rondes','Extra_afstand','Totale_afstand'];
+const historyFields=['Sessie','Datum','Leerling','Status','Volgorde','Timing','Wave','Baan','Activiteit','Testvorm','Afstand_per_ronde','Eenheid','Tijd_seconden','Slagen','SWOLF','CV_pct','Rondetijden_seconden','Volledige_rondes','Extra_afstand','Totale_afstand'];
 function recordNumber(x){if(x==null||String(x).trim()==='')return null;const n=Number(String(x).replace(',','.'));return Number.isFinite(n)?n:null}
-function normalizeRecord(r){const o={};for(const k of historyFields)o[k]=r[k]??null;for(const k of ['Wave','Baan','Afstand_per_ronde','Tijd_seconden','Slagen','SWOLF','CV_pct','Volledige_rondes','Extra_afstand','Totale_afstand'])o[k]=recordNumber(o[k]);return o}
+function normalizeRecord(r){const o={};for(const k of historyFields)o[k]=r[k]??null;for(const k of ['Volgorde','Wave','Baan','Afstand_per_ronde','Tijd_seconden','Slagen','SWOLF','CV_pct','Volledige_rondes','Extra_afstand','Totale_afstand'])o[k]=recordNumber(o[k]);return o}
 function historyKey(r){return normalName(r.Leerling)}
 function latestPerStudent(rows){const m=new Map();for(const r of rows){const k=historyKey(r);if(k)m.set(k,r)}return m}
 $('#exportCsv').onclick=()=>{
  if(typeof XLSX==='undefined')return alert('Excel-export is niet beschikbaar. Controleer je internetverbinding.');
  const current=currentRecords(),historical=state.history.slice(),all=[...historical,...current];
  const sessions=[...new Set(all.map(r=>r.Sessie).filter(Boolean))];
- const names=[...new Set(all.map(r=>r.Leerling).filter(Boolean))];
- const summary=[['Leerling',...sessions.flatMap((id,i)=>['Sessie '+(i+1)+' · tijd (s)','Sessie '+(i+1)+' · SWOLF']), 'Verschil laatste twee tijden (s)','Verschil laatste twee SWOLF']];
+ const names=[...new Set([...current.map(r=>r.Leerling),...historical.map(r=>r.Leerling)].filter(Boolean))];
+ const summary=[['Leerling',...sessions.flatMap((id,i)=>['Sessie '+(i+1)+' · tijd (s)','Sessie '+(i+1)+' · SWOLF','Sessie '+(i+1)+' · status']), 'Verschil laatste twee tijden (s)','Verschil laatste twee SWOLF']];
  for(const name of names){const records=all.filter(r=>normalName(r.Leerling)===normalName(name));const bySession=new Map(records.map(r=>[r.Sessie,r]));const timed=records.filter(r=>r.Tijd_seconden!=null),scored=records.filter(r=>r.SWOLF!=null);const prev=timed.at(-2),last=timed.at(-1),ps=scored.at(-2),ls=scored.at(-1);
- summary.push([name,...sessions.flatMap(id=>{const r=bySession.get(id);return[r?.Tijd_seconden??null,r?.SWOLF??null]}),prev&&last?+(last.Tijd_seconden-prev.Tijd_seconden).toFixed(2):null,ps&&ls?+(ls.SWOLF-ps.SWOLF).toFixed(2):null]);}
+ summary.push([name,...sessions.flatMap(id=>{const r=bySession.get(id);return[r?.Tijd_seconden??null,r?.SWOLF??null,r?.Status|| (r?.Tijd_seconden!=null?'Voltooid':'—')]}),prev&&last?+(last.Tijd_seconden-prev.Tijd_seconden).toFixed(2):null,ps&&ls?+(ls.SWOLF-ps.SWOLF).toFixed(2):null]);}
  const wb=XLSX.utils.book_new(),overview=XLSX.utils.aoa_to_sheet(summary),historiek=XLSX.utils.json_to_sheet(all,{header:historyFields});
- overview['!cols']=[{wch:24},...Array(sessions.length*2).fill({wch:22}),{wch:29},{wch:30}];historiek['!cols']=historyFields.map(k=>({wch:Math.max(13,Math.min(27,k.length+3))}));
+ overview['!cols']=[{wch:24},...Array(sessions.length*3).fill({wch:22}),{wch:29},{wch:30}];historiek['!cols']=historyFields.map(k=>({wch:Math.max(13,Math.min(27,k.length+3))}));
  overview['!autofilter']={ref:overview['!ref']};historiek['!autofilter']={ref:historiek['!ref']};
  XLSX.utils.book_append_sheet(wb,overview,'Overzicht');XLSX.utils.book_append_sheet(wb,historiek,'Historiek');
  XLSX.writeFile(wb,'timer-resultaten-'+new Date().toISOString().slice(0,10)+'.xlsx');
@@ -411,7 +420,7 @@ function resumeSession(text,filename){
  $('#waves').value=String(maxW);$('#lanes').value=String(maxL);
  state.waves=maxW;state.lanes=maxL;state.students=[];ensure();
  for(const r of prior){const s=slot(r.wave,r.lane);s.name=r.name;s.time=null;s.splits=[];s.strokes='';s.extra=''}
- state.previous={filename,bySlot:new Map(prior.map(s=>[s.wave+'-'+s.lane,s]))};
+ state.previous={filename,bySlot:new Map(prior.map(s=>[s.wave+'-'+s.lane,s])),byName:new Map(prior.map(s=>[normalName(s.name),s]))};
  if(!state.history.length)state.history=prior.map(r=>normalizeRecord({Sessie:'vorige sessie',Datum:'',Leerling:r.name,Wave:r.wave,Baan:r.lane,Tijd_seconden:r.time,SWOLF:r.swolf,Slagen:r.strokes}));
  // De oude SWOLF-export bevat slagen; toon de overeenkomstige resultaten automatisch.
  if(prior.some(s=>s.strokes!=null||s.swolf!=null))$('#useStrokes').checked=true;
@@ -435,7 +444,58 @@ $('#resumeFile').onchange=async e=>{
  }catch(err){alert('Sessie kon niet worden geladen: '+err.message)}
  e.target.value='';
 };
-function importNames(names){state.previous=null;state.history=[];capture();let clean=names.map(x=>String(x??'').trim()).filter(x=>x&&!/^(naam|name|student|voornaam)$/i.test(x));state.students.forEach(s=>{s.name='';s.splits=[];s.time=null;s.strokes='';s.extra='' });state.timers={};clean.slice(0,state.students.length).forEach((n,i)=>state.students[i].name=n);grid();$('#importStatus').textContent=clean.length+' namen ingelezen'+(clean.length>state.students.length?' (niet alle namen passen in het raster)':'')}
-$('#studentFile').onchange=async e=>{let f=e.target.files[0];if(!f)return;try{let names=[];if(f.name.toLowerCase().endsWith('.csv')){names=(await f.text()).split(/\\r?\\n/).map(r=>r.split(/[;,\\t]/)[0])}else{if(typeof XLSX==='undefined')throw Error('Excel-inlezer niet beschikbaar. Gebruik CSV of maak verbinding met internet.');let wb=XLSX.read(await f.arrayBuffer()),rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''});let header=(rows[0]||[]).map(x=>String(x).toLowerCase()),ln=header.findIndex(x=>x==='naam'),fn=header.findIndex(x=>x==='voornaam');if(ln>=0&&fn>=0){names=rows.slice(1).map(r=>[r[fn],r[ln]].filter(Boolean).join(' '))}else{let col=header.findIndex(x=>/naam|name|student/.test(x));names=rows.map(r=>r[col<0?0:col])}}importNames(names)}catch(err){alert('Klaslijst kon niet worden ingelezen: '+err.message)}e.target.value=''};
+function importNames(names){state.previous=null;state.history=[];if(state.timing==='wave')capture();let clean=names.map(x=>String(x??'').trim()).filter(x=>x&&!/^(naam|name|student|voornaam)$/i.test(x));state.students.forEach(s=>{s.name='';s.splits=[];s.time=null;s.strokes='';s.extra='' });state.timers={};state.individualTimers={};if(state.timing==='individual'){state.individual=clean.map(name=>newIndividual(name));renderIndividualSetup();$('#importStatus').textContent=clean.length+' namen ingelezen';return}clean.slice(0,state.students.length).forEach((n,i)=>state.students[i].name=n);grid();$('#importStatus').textContent=clean.length+' namen ingelezen'+(clean.length>state.students.length?' (niet alle namen passen in het raster)':'')}
+$('#studentFile').onchange=async e=>{let f=e.target.files[0];if(!f)return;try{let names=[];if(f.name.toLowerCase().endsWith('.csv')){names=(await f.text()).split(/\r?\n/).map(r=>r.split(/[;,\\t]/)[0])}else{if(typeof XLSX==='undefined')throw Error('Excel-inlezer niet beschikbaar. Gebruik CSV of maak verbinding met internet.');let wb=XLSX.read(await f.arrayBuffer()),rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''});let header=(rows[0]||[]).map(x=>String(x).toLowerCase()),ln=header.findIndex(x=>x==='naam'),fn=header.findIndex(x=>x==='voornaam');if(ln>=0&&fn>=0){names=rows.slice(1).map(r=>[r[fn],r[ln]].filter(Boolean).join(' '))}else{let col=header.findIndex(x=>/naam|name|student/.test(x));names=rows.map(r=>r[col<0?0:col])}}importNames(names)}catch(err){alert('Klaslijst kon niet worden ingelezen: '+err.message)}e.target.value=''};
+
+// Individual mode is independent of the original wave grid.
+let nextIndividualId=1;
+function newIndividual(name=''){return {id:nextIndividualId++,name,wave:1,get lane(){return this.id},absent:false,started:false,splits:[],time:null,strokes:'',extra:''}}
+function setTiming(mode){
+ if(mode===state.timing)return;
+ if(Object.keys(state.timers).length||Object.keys(state.individualTimers).length){if(!confirm('Er zijn al metingen gestart. Bij wisselen van modus worden de lopende metingen gewist. Doorgaan?'))return;state.timers={};state.individualTimers={};state.students.forEach(s=>{s.splits=[];s.time=null});state.individual.forEach(s=>{s.started=false;s.splits=[];s.time=null});state.config=null}
+ if(state.timing==='wave'){capture();if(!state.individual.length)state.individual=state.students.filter(s=>s.name).map(s=>newIndividual(s.name))}
+ state.timing=mode;
+ document.querySelectorAll('[data-timing]').forEach(b=>b.classList.toggle('selected',b.dataset.timing===mode));
+ document.querySelectorAll('.wave-setting').forEach(e=>e.hidden=mode==='individual');
+ $('#waveSetupWrap').hidden=mode==='individual';$('#individualSetup').hidden=mode!=='individual';
+ $('#setupInfo').textContent=mode==='individual'?'Importeer een klaslijst of voeg leerlingen toe. Verander de startvolgorde met de pijlen en markeer afwezigen.':'Vul de namen in of importeer een klaslijst (Excel of CSV). Elke baan is een kolom. Wave 1 start eerst; de volgende waves staan eronder. Met Enter ga je naar de volgende leerling.';
+ renderIndividualSetup();
+}
+document.querySelectorAll('[data-timing]').forEach(b=>b.onclick=()=>setTiming(b.dataset.timing));
+function renderIndividualSetup(){
+ const root=$('#individualSetup');if(!root)return;
+ const absent=state.individual.filter(s=>s.absent).length;
+ let h=`<div class="individual-toolbar"><span class="i-summary">${state.individual.length} leerlingen · ${absent} afwezig · volgorde = startvolgorde</span><button type="button" class="btn secondary" id="addIndividual">+ Leerling toevoegen</button></div><div class="individual-list">`;
+ state.individual.forEach((s,i)=>{h+=`<div class="individual-row setup-row ${s.absent?'absent':''}"><span class="i-index">${i+1}</span><input class="i-setup-name" data-name-id="${s.id}" value="${esc(s.name)}" placeholder="Naam leerling" aria-label="Naam leerling ${i+1}"><div class="i-controls"><button class="i-small" data-move="${s.id}" data-dir="-1" ${i===0?'disabled':''} title="Omhoog">↑</button><button class="i-small" data-move="${s.id}" data-dir="1" ${i===state.individual.length-1?'disabled':''} title="Omlaag">↓</button><button class="i-small absent-btn" data-absent="${s.id}">${s.absent?'Aanwezig':'Afwezig'}</button><button class="i-small" data-remove="${s.id}" title="Verwijderen">×</button></div></div>`});
+ root.innerHTML=h+'</div>';
+ $('#addIndividual').onclick=()=>{state.individual.push(newIndividual());renderIndividualSetup();root.querySelector('[data-name-id="'+state.individual.at(-1).id+'"]').focus()};
+ root.querySelectorAll('[data-name-id]').forEach(e=>e.oninput=()=>{const s=state.individual.find(x=>x.id===+e.dataset.nameId);if(s)s.name=e.value.trim()});
+ root.querySelectorAll('[data-move]').forEach(e=>e.onclick=()=>{const i=state.individual.findIndex(x=>x.id===+e.dataset.move),j=i+(+e.dataset.dir);if(i<0||j<0||j>=state.individual.length)return;[state.individual[i],state.individual[j]]=[state.individual[j],state.individual[i]];renderIndividualSetup()});
+ root.querySelectorAll('[data-absent]').forEach(e=>e.onclick=()=>{const s=state.individual.find(x=>x.id===+e.dataset.absent);if(s){if(s.started&&!s.absent)return alert('Een leerling met een gestarte meting kan niet afwezig worden gezet.');s.absent=!s.absent;renderIndividualSetup()}});
+ root.querySelectorAll('[data-remove]').forEach(e=>e.onclick=()=>{const s=state.individual.find(x=>x.id===+e.dataset.remove);if(s?.started)return alert('Verwijder geen leerling met een gestarte meting.');state.individual=state.individual.filter(x=>x.id!==+e.dataset.remove);renderIndividualSetup()});
+}
+function individualElapsed(s){const t=state.individualTimers[s.id];return t?.start!=null?(t.end??performance.now())-t.start:0}
+function startIndividual(id){const s=state.individual.find(x=>x.id===id);if(!s||s.absent||s.started)return;state.individualTimers[id]={start:performance.now(),end:null};s.started=true;renderIndividualTest()}
+function recordIndividual(id,kind){const s=state.individual.find(x=>x.id===id),t=state.individualTimers[id];if(!s||!t||s.time!=null)return;const ms=performance.now()-t.start,c=state.config||config();if(kind==='split'){s.splits.push(ms);if(c.type==='distance'&&c.laps&&s.splits.length>=c.laps){s.time=ms;t.end=performance.now()}}else{s.time=ms;t.end=performance.now();if(c.splits&&(!s.splits.length||ms>s.splits.at(-1)))s.splits.push(ms)}renderIndividualTest()}
+function undoIndividual(id){const s=state.individual.find(x=>x.id===id),t=state.individualTimers[id];if(!s||!t)return;if(s.time!=null){s.time=null;t.end=null;if(s.splits.length)s.splits.pop()}else if(s.splits.length)s.splits.pop();renderIndividualTest()}
+function renderIndividualTest(){
+ cancelAnimationFrame(raf);$('#wavesArea').hidden=true;$('#individualTest').hidden=false;
+ const c=state.config||config(),ss=state.individual.filter(s=>s.name),abs=ss.filter(s=>s.absent).length,done=ss.filter(s=>s.time!=null).length;
+ let h=`<div class="card individual-card"><div class="individual-toolbar"><span class="i-test-title">Individuele timing</span><button class="btn secondary" id="editIndividualOrder" type="button">Volgorde / afwezig</button><span class="i-summary">${done} klaar · ${ss.filter(s=>s.started&&s.time==null).length} bezig · ${abs} afwezig</span></div><div class="individual-list">`;
+ ss.forEach((s,i)=>{const running=s.started&&s.time==null,hasSplit=c.splits||c.type==='distance',last=c.type==='distance'&&s.splits.length+1>=c.laps;
+ const main=s.absent?'Afwezig':s.time!=null?'Klaar':running?(c.type==='distance'?(last?'FINISH':'SPLIT'):c.type==='duration'?'Bezig':'FINISH'):'START';
+ h+=`<div class="individual-row ${s.absent?'absent':''} ${running&&hasSplit?'with-splits':''}"><span class="i-index">${i+1}</span><span class="student-name" title="${esc(s.name)}">${esc(s.name)}</span><span class="i-clock" data-i-clock="${s.id}">${s.absent?'—':s.time!=null?fmt(s.time):running?fmt(individualElapsed(s)):'—'}</span>`;
+ if(running&&hasSplit){h+=`<button class="i-small i-split-action" data-i-split="${s.id}">SPLIT</button>`}
+ h+=`<button class="i-action ${running?'finish':''} ${s.time!=null?'done':''}" data-i-action="${s.id}" ${s.absent||s.time!=null?'disabled':''}>${main}</button></div>`;
+ });
+ h+=`</div><div class="compact-actions"><button class="btn secondary" id="toResultsIndividual">Resultaten</button></div></div>`;
+ $('#individualTest').innerHTML=h;
+ $('#individualTest').querySelectorAll('[data-i-action]').forEach(b=>b.onclick=()=>{const s=state.individual.find(x=>x.id===+b.dataset.iAction);if(!s)return;if(!s.started)startIndividual(s.id);else if(c.type!=='duration')recordIndividual(s.id,'finish')});
+ $('#individualTest').querySelectorAll('[data-i-split]').forEach(b=>b.onclick=()=>recordIndividual(+b.dataset.iSplit,'split'));
+ $('#toResultsIndividual').onclick=()=>show('results');$('#editIndividualOrder').onclick=()=>show('setup');
+ tickIndividual();
+}
+function tickIndividual(){cancelAnimationFrame(raf);const run=()=>{let any=false,stop=[];for(const s of state.individual){if(!s.started||s.time!=null)continue;const t=state.individualTimers[s.id];if(!t)continue;const ms=individualElapsed(s);if(state.config?.type==='duration'&&state.config.duration>0&&ms>=state.config.duration*1000){stop.push(s);continue}const el=document.querySelector(`[data-i-clock="${s.id}"]`);if(el)el.textContent=fmt(ms);any=true}if(stop.length){for(const s of stop){const t=state.individualTimers[s.id];s.time=state.config.duration*1000;t.end=t.start+s.time}renderIndividualTest();return}if(any)raf=requestAnimationFrame(run)};run()}
+
 grid();
 </script></body></html>
